@@ -1,8 +1,8 @@
 package osm
 
 import (
+	"encoding/json"
 	"encoding/xml"
-	"time"
 )
 
 // xmlNameJSONTypeNode is kind of a hack to encode the proper json
@@ -24,7 +24,7 @@ type Node struct {
 	Visible     bool                `db:"visible" xml:"visible,attr" json:"visible"`
 	Version     int                 `db:"version" xml:"version,attr" json:"version,omitempty"`
 	ChangesetID int64               `db:"changeset" xml:"changeset,attr" json:"changeset,omitempty"`
-	Timestamp   time.Time           `db:"timestamp" xml:"timestamp,attr" json:"timestamp"`
+	Timestamp   TimeOSM             `db:"timestamp" xml:"timestamp,attr" json:"timestamp"`
 	Tags        Tags                `db:"tags" xml:"tag" json:"tags,omitempty"`
 }
 
@@ -35,3 +35,8 @@ func (n *Node) ObjectID() int64 {
 
 // Nodes is a list of nodes with helper functions on top.
 type Nodes []*Node
+
+// Scan - Implement the database/sql scanner interface
+func (ns *Nodes) Scan(value interface{}) error {
+	return json.Unmarshal(value.([]byte), ns)
+}

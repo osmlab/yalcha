@@ -42,72 +42,14 @@ func (s *Server) GetRelationFull(c echo.Context) error {
 		s.SetEmptyResultHeaders(c, http.StatusNotFound)
 		return err
 	}
-	relation, err := s.db.GetRelation(id)
-	if err != nil {
+	osm, err := s.db.GetRelationFull(id)
+	if err != nil || len(osm.Objects()) == 0 {
 		s.SetEmptyResultHeaders(c, http.StatusNotFound)
 		return err
 	}
-
-	if !relation.Visible {
-		s.SetEmptyResultHeaders(c, http.StatusGone)
-		return nil
-	}
-
-	relationIDs := []int64{}
-	nodeIDs := []int64{}
-	wayIDs := []int64{}
-	for _, m := range relation.Members {
-		if m.Type == "relation" {
-			relationIDs = append(relationIDs, m.Ref)
-		}
-		if m.Type == "way" {
-			wayIDs = append(wayIDs, m.Ref)
-		}
-		if m.Type == "node" {
-			nodeIDs = append(nodeIDs, m.Ref)
-		}
-	}
-
-	relations, err := s.db.GetRelations(relationIDs)
-	if err != nil {
-		s.SetEmptyResultHeaders(c, http.StatusNotFound)
-		return err
-	}
-
-	ways, err := s.db.GetWays(wayIDs)
-	if err != nil {
-		s.SetEmptyResultHeaders(c, http.StatusNotFound)
-		return err
-	}
-
-	for _, w := range *ways {
-		for _, wn := range w.Nodes {
-			exist := false
-			for _, id := range nodeIDs {
-				if wn.ID == id {
-					exist = true
-					break
-				}
-			}
-			if !exist {
-				nodeIDs = append(nodeIDs, wn.ID)
-			}
-		}
-	}
-	nodes, err := s.db.GetNodes(nodeIDs)
-	if err != nil {
-		s.SetEmptyResultHeaders(c, http.StatusNotFound)
-		return err
-	}
-
-	resp := osm.New()
-	resp.Nodes = *nodes
-	resp.Ways = *ways
-	resp.Relations = *relations
-	resp.Relations = append(resp.Relations, relation)
 
 	s.SetHeaders(c)
-	return xml.NewEncoder(c.Response()).Encode(resp)
+	return xml.NewEncoder(c.Response()).Encode(osm)
 }
 
 // GetRelations returns relations by ids

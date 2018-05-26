@@ -50,11 +50,43 @@ FROM get_way_by_id(%v)`, id)
 	return way, nil
 }
 
+// GetWayFull selects way with internal nodes from database by id
+func (o *OsmDB) GetWayFull(id int64) (*osm.OSM, error) {
+	query := fmt.Sprintf(`
+	WITH way AS (
+		SELECT * FROM get_way_by_id(%v)
+	), node_ids AS (
+		SELECT ARRAY_AGG(ref) from (
+			SELECT UNNEST(nodes) AS ref FROM way
+		) AS r
+	), nodes AS (
+		SELECT * FROM get_node_by_id(
+			VARIADIC (SELECT * FROM node_ids)
+		)
+	), ways_array AS (
+		SELECT array_to_json(array_agg(w)) AS ways FROM way w
+	), nodes_array AS (
+		SELECT array_to_json(array_agg(n)) AS nodes FROM nodes n
+	)
+	SELECT COALESCE(w.ways, '[]'), COALESCE(n.nodes, '[]')
+	FROM ways_array w, nodes_array n
+	`, id)
+
+	osm := osm.New()
+	err := o.db.QueryRow(query).Scan(
+		&osm.Ways,
+		&osm.Nodes,
+	)
+	return osm, err
+}
+
 // GetWays returns ways by ids
 func (o *OsmDB) GetWays(ids []int64) (*osm.Ways, error) {
-	waysQuery := ""
-	for i := range ids {
-		wayQuery := fmt.Sprintf(`
+	if len(ids) == 0 {
+		return nil, nil
+	}
+
+	waysQuery := fmt.Sprintf(`
 SELECT
 	id, 
 	visible, 
@@ -66,12 +98,7 @@ SELECT
 	COALESCE(to_json(nodes), '[]') AS nodes,
 	COALESCE(to_json(tags), '[]') AS tags
 FROM get_way_by_id(%v)
-`, ids[i])
-		waysQuery += wayQuery
-		if i != len(ids)-1 {
-			waysQuery += "UNION ALL"
-		}
-	}
+`, arrayToString(ids))
 
 	rows, err := o.db.Query(waysQuery)
 	if err != nil {

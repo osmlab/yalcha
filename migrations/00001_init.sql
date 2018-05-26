@@ -2,6 +2,9 @@
 
 drop type if exists osm_node cascade;
 drop type if exists osm_tag cascade;
+drop type if exists osm_way cascade;
+drop type if exists osm_relation cascade;
+drop type if exists osm_member;
 
 create type osm_tag as (
     k text,
@@ -48,7 +51,7 @@ create type osm_relation as (
 );
 
 create or replace function get_node_by_id(
-    p_id bigint
+    variadic p_ids bigint[]
 )
     returns setof osm_node stable parallel safe language sql as $$
 select
@@ -67,16 +70,16 @@ select
             (k, v) :: osm_tag
         order by k)
         from current_node_tags t
-        where t.node_id = p_id
+        where t.node_id = n.id
     ) as tags
 from current_nodes n
     join changesets c on c.id = n.changeset_id
     left join users u on (u.id = c.user_id and u.data_public)
-where n.id = p_id
+where n.id = ANY(p_ids)
 $$;
 
 create or replace function get_way_by_id(
-    p_id bigint
+    variadic p_ids bigint[]
 )
     returns setof osm_way stable parallel safe language sql as $$
 select
@@ -92,21 +95,21 @@ select
             (k, v) :: osm_tag
         order by k)
         from current_way_tags t
-        where t.way_id = p_id
+        where t.way_id = n.id
     ) as tags,
     (
         select array_agg(node_id
         order by sequence_id)
         from current_way_nodes t
-        where t.way_id = p_id
+        where t.way_id = n.id
     ) as nodes
 from current_ways n
     join changesets c on c.id = n.changeset_id
     left join users u on (u.id = c.user_id and u.data_public)
-where n.id = p_id
+where n.id = ANY(p_ids)
 $$;
 create or replace function get_relation_by_id(
-    p_id bigint
+    variadic p_ids bigint[]
 )
     returns setof osm_relation stable parallel safe language sql as $$
 select
@@ -122,7 +125,7 @@ select
             (k, v) :: osm_tag
         order by k)
         from current_relation_tags t
-        where t.relation_id = p_id
+        where t.relation_id = n.id
     ),
     (
         select array_agg(
@@ -140,12 +143,12 @@ select
             ) :: osm_member
         order by sequence_id)
         from current_relation_members t
-        where t.relation_id = p_id
+        where t.relation_id = n.id
     )
 from current_relations n
     join changesets c on c.id = n.changeset_id
     left join users u on (u.id = c.user_id and u.data_public)
-where n.id = p_id
+where n.id = ANY(p_ids)
 $$;
 
 -- +goose Down

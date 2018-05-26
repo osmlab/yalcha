@@ -3,7 +3,6 @@ package osm
 import (
 	"encoding/json"
 	"encoding/xml"
-	"time"
 )
 
 // xmlNameJSONTypeWay is kind of a hack to encode the proper json
@@ -23,7 +22,7 @@ type Way struct {
 	User        *string            `db:"user" xml:"user,attr,omitempty" json:"user,omitempty"`
 	UserID      *int64             `db:"uid" xml:"uid,attr,omitempty" json:"uid,omitempty"`
 	ChangesetID int64              `db:"changeset" xml:"changeset,attr" json:"changeset,omitempty"`
-	Timestamp   time.Time          `db:"timestamp" xml:"timestamp,attr" json:"timestamp"`
+	Timestamp   TimeOSM            `db:"timestamp" xml:"timestamp,attr" json:"timestamp"`
 	Nodes       wayNodes           `db:"nodes" xml:"nd" json:"nodes"`
 	Tags        Tags               `db:"tags" xml:"tag" json:"tags,omitempty"`
 }
@@ -52,3 +51,8 @@ func (w *Way) ObjectID() int64 {
 
 // Ways is a list of ways with helper functions on top.
 type Ways []*Way
+
+// Scan - Implement the database/sql scanner interface
+func (ws *Ways) Scan(value interface{}) error {
+	return json.Unmarshal(value.([]byte), ws)
+}

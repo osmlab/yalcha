@@ -3,7 +3,6 @@ package osm
 import (
 	"encoding/json"
 	"encoding/xml"
-	"time"
 
 	"github.com/paulmach/orb"
 )
@@ -26,7 +25,7 @@ type Relation struct {
 	User        *string            `xml:"user,attr" json:"user,omitempty"`
 	UserID      *int64             `xml:"uid,attr" json:"uid,omitempty"`
 	ChangesetID int64              `xml:"changeset,attr" json:"changeset,omitempty"`
-	Timestamp   time.Time          `xml:"timestamp,attr" json:"timestamp,omitempty"`
+	Timestamp   TimeOSM            `xml:"timestamp,attr" json:"timestamp,omitempty"`
 	Tags        Tags               `xml:"tag" json:"tags,omitempty"`
 	Members     Members            `xml:"member" json:"members"`
 }
@@ -65,3 +64,8 @@ func (r *Relation) ObjectID() int64 {
 
 // Relations is a list of relations with helper functions on top.
 type Relations []*Relation
+
+// Scan - Implement the database/sql scanner interface
+func (rs *Relations) Scan(value interface{}) error {
+	return json.Unmarshal(value.([]byte), rs)
+}

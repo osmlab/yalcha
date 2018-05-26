@@ -42,42 +42,19 @@ func (s *Server) GetWayFull(c echo.Context) error {
 		s.SetEmptyResultHeaders(c, http.StatusNotFound)
 		return err
 	}
-	way, err := s.db.GetWay(id)
-	if err != nil {
+	osm, err := s.db.GetWayFull(id)
+	if err != nil || len(osm.Objects()) == 0 {
 		s.SetEmptyResultHeaders(c, http.StatusNotFound)
 		return err
 	}
 
-	if !way.Visible {
+	if !osm.Ways[0].Visible {
 		s.SetEmptyResultHeaders(c, http.StatusGone)
 		return nil
 	}
 
-	nodeIDs := []int64{}
-	for _, wn := range way.Nodes {
-		exist := false
-		for _, id := range nodeIDs {
-			if wn.ID == id {
-				exist = true
-				break
-			}
-		}
-		if !exist {
-			nodeIDs = append(nodeIDs, wn.ID)
-		}
-	}
-	nodes, err := s.db.GetNodes(nodeIDs)
-	if err != nil {
-		s.SetEmptyResultHeaders(c, http.StatusNotFound)
-		return err
-	}
-
-	resp := osm.New()
-	resp.Nodes = *nodes
-	resp.Ways = append(resp.Ways, way)
-
 	s.SetHeaders(c)
-	return xml.NewEncoder(c.Response()).Encode(resp)
+	return xml.NewEncoder(c.Response()).Encode(osm)
 }
 
 // GetWays returns ways by ids

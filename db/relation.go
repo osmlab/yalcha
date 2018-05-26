@@ -7,20 +7,20 @@ import (
 	"github.com/osmlab/yalcha/osm"
 )
 
-// GetRelation selects relation from database by id
+// GetRelation selects relation from databASe by id
 func (o *OsmDB) GetRelation(id int64) (*osm.Relation, error) {
 	relationQuery := fmt.Sprintf(`
-SELECT
-	id, 
-	visible, 
-	version,  
-	"user",
-	uid,
-	changeset,
-	timestamp,
-	COALESCE(to_json(tags), '[]') AS tags,
-	COALESCE(to_json(members), '[]') AS members
-FROM get_relation_by_id(%v)`, id)
+	SELECT
+		id, 
+		visible, 
+		version,  
+		"user",
+		uid,
+		changeset,
+		timestamp,
+		COALESCE(to_json(tags), '[]') AS tags,
+		COALESCE(to_json(members), '[]') AS members
+	FROM get_relation_by_id(%v)`, id)
 
 	var user sql.NullString
 	var userID sql.NullInt64
@@ -50,28 +50,76 @@ FROM get_relation_by_id(%v)`, id)
 	return relation, nil
 }
 
+// GetRelationFull is used to return relation with all internal members
+func (o *OsmDB) GetRelationFull(id int64) (*osm.OSM, error) {
+	query := fmt.Sprintf(`
+	WITH relation AS (
+		SELECT * FROM get_relation_by_id(%v)
+	), relation_members AS (
+		SELECT unnest(members) AS members FROM relation
+	), relation_ids AS (
+		SELECT array_agg((members::osm_member).ref) FROM relation_members where (members::osm_member).type = 'relation'
+	), relations AS (
+		SELECT * FROM get_relation_by_id(
+				variadic (SELECT * FROM relation_ids)
+		)
+		union
+		SELECT * FROM relation
+	), way_ids AS (
+		SELECT array_agg((members::osm_member).ref) FROM relation_members where (members::osm_member).type = 'way'
+	), ways AS (
+		SELECT * FROM get_way_by_id(
+			variadic (SELECT * FROM way_ids)
+		)
+	), node_ids AS (
+		SELECT array_agg(ref) FROM (
+			SELECT (members::osm_member).ref FROM relation_members where (members::osm_member).type = 'node'
+			union
+			SELECT unnest(nodes) AS ref FROM ways
+		) AS r
+	), nodes AS (
+		SELECT * FROM get_node_by_id(
+			variadic (SELECT * FROM node_ids)
+		)
+	), relations_array AS (
+		SELECT array_to_json(array_agg(r)) AS relations FROM relations r
+	), ways_array AS (
+		SELECT array_to_json(array_agg(w)) AS ways FROM ways w
+	), nodes_array AS (
+		SELECT array_to_json(array_agg(n)) AS nodes FROM nodes n
+	)
+	SELECT COALESCE(r.relations, '[]'), COALESCE(w.ways, '[]'), COALESCE(n.nodes, '[]')
+	FROM relations_array r, ways_array w, nodes_array n	
+	`, id)
+
+	osm := osm.New()
+	err := o.db.QueryRow(query).Scan(
+		&osm.Relations,
+		&osm.Ways,
+		&osm.Nodes,
+	)
+	return osm, err
+}
+
 // GetRelations returns relations by ids
 func (o *OsmDB) GetRelations(ids []int64) (*osm.Relations, error) {
-	relationsQuery := ""
-	for i := range ids {
-		relationQuery := fmt.Sprintf(`
-SELECT
-	id, 
-	visible, 
-	version,  
-	"user",
-	uid,
-	changeset,
-	timestamp,
-	COALESCE(to_json(tags), '[]') AS tags,
-	COALESCE(to_json(members), '[]') AS members
-FROM get_relation_by_id(%v)
-`, ids[i])
-		relationsQuery += relationQuery
-		if i != len(ids)-1 {
-			relationsQuery += "UNION ALL"
-		}
+	if len(ids) == 0 {
+		return nil, nil
 	}
+
+	relationsQuery := fmt.Sprintf(`
+	SELECT
+		id, 
+		visible, 
+		version,  
+		"user",
+		uid,
+		changeset,
+		timestamp,
+		COALESCE(to_json(tags), '[]') AS tags,
+		COALESCE(to_json(members), '[]') AS members
+	FROM get_relation_by_id(%v)
+	`, arrayToString(ids))
 
 	rows, err := o.db.Query(relationsQuery)
 	if err != nil {

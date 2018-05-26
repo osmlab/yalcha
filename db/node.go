@@ -54,9 +54,11 @@ FROM get_node_by_id(%v)`, id)
 
 // GetNodes selects nodes from database by ids
 func (o *OsmDB) GetNodes(ids []int64) (*osm.Nodes, error) {
-	nodesQuery := ""
-	for i := range ids {
-		nodeQuery := fmt.Sprintf(`
+	if len(ids) == 0 {
+		return nil, nil
+	}
+
+	nodesQuery := fmt.Sprintf(`
 SELECT
 	id, 
 	visible, 
@@ -69,12 +71,7 @@ SELECT
 	timestamp,
 	COALESCE(to_json(tags), '[]') AS tags
 FROM get_node_by_id(%v)
-`, ids[i])
-		nodesQuery += nodeQuery
-		if i != len(ids)-1 {
-			nodesQuery += "UNION ALL"
-		}
-	}
+`, arrayToString(ids))
 
 	rows, err := o.db.Query(nodesQuery)
 	if err != nil {
