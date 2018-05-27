@@ -1,0 +1,303 @@
+ASSERTION	AAMBAAIFAAAAAAAAAAAA
+RUN	osmapi.ApiSimulation		apisimulation	1527409648057	 	2.0
+USER	Node tests	5	START	1527409649035	1527409649035
+USER	Node diff tests	1	START	1527409649293	1527409649293
+REQUEST	Node tests	5	N tests,Accept header tests	*/*	1527409649077	1527409649103	OK	 
+USER	Nodes tests	2	START	1527409649545	1527409649545
+REQUEST	Node tests	5	N tests,Accept header tests	text/*	1527409649553	1527409649558	OK	 
+REQUEST	Node tests	5	N tests,Accept header tests	text/xml	1527409649561	1527409649565	OK	 
+REQUEST	Nodes tests	2	Ns tests,Accept header tests	*/*	1527409649546	1527409649565	OK	 
+REQUEST	Nodes tests	2	Ns tests,Accept header tests	text/*	1527409649571	1527409649574	OK	 
+REQUEST	Node tests	5	N tests,Accept header tests	invalid *	1527409649567	1527409649576	OK	 
+REQUEST	Nodes tests	2	Ns tests,Accept header tests	text/xml	1527409649577	1527409649582	OK	 
+REQUEST	Node tests	5	N tests,Accept header tests	invalid josm	1527409649585	1527409649593	OK	 
+REQUEST	Nodes tests	2	Ns tests,Accept header tests	invalid *	1527409649585	1527409649588	OK	 
+GROUP	Node tests	5	N tests,Accept header tests	1527409649046	1527409649604	52	OK
+REQUEST	Node tests	5	N tests,Syntax tests	Invalid request	1527409649605	1527409649606	OK	 
+REQUEST	Nodes tests	2	Ns tests,Accept header tests	invalid josm	1527409649606	1527409649608	OK	 
+GROUP	Nodes tests	2	Ns tests,Accept header tests	1527409649545	1527409649611	32	OK
+REQUEST	Node tests	5	N tests,Syntax tests	Large node ID	1527409649609	1527409649611	OK	 
+GROUP	Node tests	5	N tests,Syntax tests	1527409649605	1527409649617	3	OK
+REQUEST	Nodes tests	2	Ns tests,Multi deleted tests	1 missing 1 existing	1527409649612	1527409649615	OK	 
+REQUEST	Nodes tests	2	Ns tests,Multi deleted tests	1 existing 1 missing	1527409649624	1527409649627	OK	 
+GROUP	Nodes tests	2	Ns tests,Multi deleted tests	1527409649611	1527409649630	6	OK
+REQUEST	Node diff tests	1	N diff tests,Content tests	recreated	1527409649294	1527409649298	OK	 
+REQUEST	Nodes tests	2	Ns tests,Syntax tests	Empty request	1527409649630	1527409649632	OK	 
+REQUEST	Nodes tests	2	Ns tests,Syntax tests	Empty nodes param	1527409649634	1527409649635	OK	 
+REQUEST	Nodes tests	2	Ns tests,Syntax tests	Empty nodes param	1527409649636	1527409649637	OK	 
+REQUEST	Node tests	5	N tests,Overall tests	osm attributes	1527409649618	1527409649622	OK	 
+REQUEST	Nodes tests	2	Ns tests,Syntax tests	Invalid nodes param	1527409649638	1527409649640	OK	 
+REQUEST	Nodes tests	2	Ns tests,Syntax tests	Invalid and valid nodes param	1527409649640	1527409649642	OK	 
+REQUEST	Node tests	5	N tests,Overall tests	existing HEAD	1527409649640	1527409649642	OK	 
+REQUEST	Node tests	5	N tests,Overall tests	missing	1527409649643	1527409649648	OK	 
+REQUEST	Nodes tests	2	Ns tests,Syntax tests	Large node ID	1527409649643	1527409649650	OK	 
+GROUP	Nodes tests	2	Ns tests,Syntax tests	1527409649630	1527409649652	15	OK
+REQUEST	Node tests	5	N tests,Overall tests	missing HEAD	1527409649649	1527409649653	OK	 
+GROUP	Node tests	5	N tests,Overall tests	1527409649618	1527409649658	15	OK
+REQUEST	Node diff tests	1	N diff tests,Content tests	recreated as untagged	1527409649632	1527409649634	OK	 
+REQUEST	Nodes tests	2	Ns tests,Single content tests	attributes	1527409649653	1527409649655	OK	 
+REQUEST	Node tests	5	N tests,Content tests	attributes	1527409649658	1527409649662	OK	 
+REQUEST	Node tests	5	N tests,Content tests	different attributes	1527409649686	1527409649688	OK	 
+REQUEST	Nodes tests	2	Ns tests,Single content tests	different attributes	1527409649684	1527409649690	OK	 
+REQUEST	Node diff tests	1	N diff tests,Content tests	diff created	1527409649677	1527409649680	OK	 
+REQUEST	Node tests	5	N tests,Content tests	anonymous user	1527409649709	1527409649712	OK	 
+REQUEST	Node diff tests	1	N diff tests,Content tests	diff created tagged	1527409649721	1527409649724	OK	 
+REQUEST	Nodes tests	2	Ns tests,Single content tests	multiple tags	1527409649717	1527409649720	OK	 
+REQUEST	Node tests	5	N tests,Content tests	one tag	1527409649743	1527409649748	OK	 
+REQUEST	Node tests	5	N tests,Content tests	multiple tags	1527409649772	1527409649775	OK	 
+USER	Nodes diff tests	9	START	1527409649793	1527409649793
+REQUEST	Nodes tests	2	Ns tests,Single content tests	anonymous user	1527409649766	1527409649770	OK	 
+GROUP	Nodes tests	2	Ns tests,Single content tests	1527409649652	1527409649806	15	OK
+REQUEST	Node diff tests	1	N diff tests,Content tests	moved	1527409649761	1527409649770	OK	 
+REQUEST	Nodes diff tests	9	Ns diff tests,Single tests	recreated	1527409649793	1527409649812	OK	 
+REQUEST	Nodes tests	2	Ns tests,Multi content tests	multiple attributes	1527409649806	1527409649812	OK	 
+REQUEST	Node tests	5	N tests,Content tests	different tag order	1527409649794	1527409649797	OK	 
+REQUEST	Nodes diff tests	9	Ns diff tests,Single tests	recreated as untagged	1527409649824	1527409649827	OK	 
+GROUP	Node tests	5	N tests,Content tests	1527409649658	1527409649840	20	OK
+GROUP	Node tests	5	N tests	1527409649045	1527409649841	90	OK
+USER	Node tests	5	END	1527409649035	1527409649843
+REQUEST	Nodes diff tests	9	Ns diff tests,Single tests	diff created	1527409649840	1527409649844	OK	 
+REQUEST	Node diff tests	1	N diff tests,Content tests	moved tagged	1527409649817	1527409649821	OK	 
+GROUP	Node diff tests	1	N diff tests,Content tests	1527409649293	1527409649856	25	OK
+GROUP	Node diff tests	1	N diff tests	1527409649293	1527409649856	25	OK
+REQUEST	Node diff tests	1	N history tests	deleted	1527409649857	1527409649859	OK	 
+REQUEST	Nodes tests	2	Ns tests,Multi content tests	multiple tags	1527409649836	1527409649842	OK	 
+GROUP	Nodes tests	2	Ns tests,Multi content tests	1527409649806	1527409649866	12	OK
+GROUP	Nodes tests	2	Ns tests	1527409649545	1527409649866	80	OK
+USER	Nodes tests	2	END	1527409649545	1527409649866
+REQUEST	Node diff tests	1	N history tests	deleted HEAD	1527409649860	1527409649865	OK	 
+REQUEST	Node diff tests	1	N history tests	deleted tagged	1527409649867	1527409649870	OK	 
+REQUEST	Nodes diff tests	9	Ns diff tests,Single tests	diff created tagged	1527409649852	1527409649855	OK	 
+REQUEST	Node diff tests	1	N history tests	deleted tagged HEAD	1527409649872	1527409649874	OK	 
+GROUP	Node diff tests	1	N history tests	1527409649856	1527409649876	12	OK
+USER	Node diff tests	1	END	1527409649293	1527409649877
+REQUEST	Nodes diff tests	9	Ns diff tests,Single tests	moved	1527409649875	1527409649880	OK	 
+REQUEST	Nodes diff tests	9	Ns diff tests,Single tests	moved tagged	1527409649887	1527409649890	OK	 
+GROUP	Nodes diff tests	9	Ns diff tests,Single tests	1527409649793	1527409649899	37	OK
+GROUP	Nodes diff tests	9	Ns diff tests	1527409649793	1527409649899	37	OK
+REQUEST	Nodes diff tests	9	Ns history tests,Single content tests	deleted	1527409649899	1527409649902	OK	 
+REQUEST	Nodes diff tests	9	Ns history tests,Single content tests	deleted tagged	1527409649915	1527409649918	OK	 
+GROUP	Nodes diff tests	9	Ns history tests,Single content tests	1527409649899	1527409649932	6	OK
+REQUEST	Nodes diff tests	9	Ns history tests,Multi content tests	1 created 1 deleted tagged	1527409649933	1527409649935	OK	 
+GROUP	Nodes diff tests	9	Ns history tests,Multi content tests	1527409649933	1527409649946	2	OK
+REQUEST	Nodes diff tests	9	Ns history tests,multi response tests	1 deleted 1 missing	1527409649947	1527409649949	OK	 
+GROUP	Nodes diff tests	9	Ns history tests,multi response tests	1527409649947	1527409649950	2	OK
+GROUP	Nodes diff tests	9	Ns history tests	1527409649899	1527409649951	10	OK
+USER	Nodes diff tests	9	END	1527409649793	1527409649951
+USER	Way tests	8	START	1527409650044	1527409650044
+REQUEST	Way tests	8	W tests,Accept header tests	*/*	1527409650044	1527409650048	OK	 
+REQUEST	Way tests	8	W tests,Accept header tests	text/*	1527409650049	1527409650053	OK	 
+REQUEST	Way tests	8	W tests,Accept header tests	text/xml	1527409650054	1527409650056	OK	 
+REQUEST	Way tests	8	W tests,Accept header tests	invalid *	1527409650057	1527409650059	OK	 
+REQUEST	Way tests	8	W tests,Accept header tests	invalid josm	1527409650061	1527409650063	OK	 
+GROUP	Way tests	8	W tests,Accept header tests	1527409650044	1527409650064	14	OK
+REQUEST	Way tests	8	W tests,Syntax tests	Invalid request	1527409650064	1527409650065	OK	 
+REQUEST	Way tests	8	W tests,Syntax tests	Large ID	1527409650066	1527409650067	OK	 
+GROUP	Way tests	8	W tests,Syntax tests	1527409650064	1527409650067	2	OK
+REQUEST	Way tests	8	W tests,Overall tests	osm attributes	1527409650068	1527409650070	OK	 
+REQUEST	Way tests	8	W tests,Overall tests	existing HEAD	1527409650074	1527409650077	OK	 
+REQUEST	Way tests	8	W tests,Overall tests	missing	1527409650078	1527409650081	OK	 
+REQUEST	Way tests	8	W tests,Overall tests	missing HEAD	1527409650082	1527409650084	OK	 
+GROUP	Way tests	8	W tests,Overall tests	1527409650068	1527409650085	10	OK
+REQUEST	Way tests	8	W tests,Content tests	attributes	1527409650086	1527409650088	OK	 
+REQUEST	Way tests	8	W tests,Content tests	anonymous way	1527409650113	1527409650115	OK	 
+REQUEST	Way tests	8	W tests,Content tests	tagged way	1527409650123	1527409650125	OK	 
+REQUEST	Way tests	8	W tests,Content tests	one node way	1527409650145	1527409650148	OK	 
+GROUP	Way tests	8	W tests,Content tests	1527409650085	1527409650163	9	OK
+GROUP	Way tests	8	W tests	1527409650044	1527409650163	35	OK
+USER	Way tests	8	END	1527409650044	1527409650164
+USER	Way diff tests	3	START	1527409650293	1527409650293
+REQUEST	Way diff tests	3	W diff tests,Status tests	recreated	1527409650294	1527409650297	OK	 
+REQUEST	Way diff tests	3	W diff tests,Status tests	recreated as untagged	1527409650308	1527409650311	OK	 
+REQUEST	Way diff tests	3	W diff tests,Status tests	diff created	1527409650321	1527409650323	OK	 
+REQUEST	Way diff tests	3	W diff tests,Status tests	diff created tagged	1527409650336	1527409650338	OK	 
+GROUP	Way diff tests	3	W diff tests,Status tests	1527409650293	1527409650353	10	OK
+GROUP	Way diff tests	3	W diff tests	1527409650293	1527409650353	10	OK
+REQUEST	Way diff tests	3	W history tests	deleted	1527409650354	1527409650357	OK	 
+REQUEST	Way diff tests	3	W history tests	deleted HEAD	1527409650360	1527409650363	OK	 
+REQUEST	Way diff tests	3	W history tests	deleted tagged	1527409650364	1527409650367	OK	 
+REQUEST	Way diff tests	3	W history tests	deleted tagged HEAD	1527409650368	1527409650371	OK	 
+GROUP	Way diff tests	3	W history tests	1527409650353	1527409650372	12	OK
+USER	Way diff tests	3	END	1527409650293	1527409650372
+USER	Ways tests	7	START	1527409650544	1527409650544
+REQUEST	Ways tests	7	Ws tests,Single accept header tests	*/*	1527409650544	1527409650548	OK	 
+REQUEST	Ways tests	7	Ws tests,Single accept header tests	text/*	1527409650549	1527409650551	OK	 
+REQUEST	Ways tests	7	Ws tests,Single accept header tests	text/xml	1527409650552	1527409650554	OK	 
+REQUEST	Ways tests	7	Ws tests,Single accept header tests	invalid *	1527409650555	1527409650557	OK	 
+REQUEST	Ways tests	7	Ws tests,Single accept header tests	invalid josm	1527409650558	1527409650560	OK	 
+GROUP	Ways tests	7	Ws tests,Single accept header tests	1527409650544	1527409650562	12	OK
+REQUEST	Ways tests	7	Ws tests,Multi deleted tests	1 missing 1 existing	1527409650562	1527409650564	OK	 
+REQUEST	Ways tests	7	Ws tests,Multi deleted tests	1 existing 1 missing	1527409650565	1527409650568	OK	 
+GROUP	Ways tests	7	Ws tests,Multi deleted tests	1527409650562	1527409650569	5	OK
+REQUEST	Ways tests	7	Ws tests,Syntax tests	Empty request	1527409650569	1527409650570	OK	 
+REQUEST	Ways tests	7	Ws tests,Syntax tests	Empty ways param	1527409650571	1527409650572	OK	 
+REQUEST	Ways tests	7	Ws tests,Syntax tests	Empty ways param	1527409650573	1527409650573	OK	 
+REQUEST	Ways tests	7	Ws tests,Syntax tests	Invalid ways param	1527409650574	1527409650575	OK	 
+REQUEST	Ways tests	7	Ws tests,Syntax tests	Invalid and valid ways param	1527409650576	1527409650576	OK	 
+REQUEST	Ways tests	7	Ws tests,Syntax tests	Large ID	1527409650577	1527409650578	OK	 
+GROUP	Ways tests	7	Ws tests,Syntax tests	1527409650569	1527409650578	4	OK
+REQUEST	Ways tests	7	Ws tests,Single content tests	attributes	1527409650578	1527409650581	OK	 
+REQUEST	Ways tests	7	Ws tests,Single content tests	anonymous way	1527409650586	1527409650588	OK	 
+REQUEST	Ways tests	7	Ws tests,Single content tests	tagged way	1527409650593	1527409650599	OK	 
+REQUEST	Ways tests	7	Ws tests,Single content tests	one node way	1527409650604	1527409650605	OK	 
+GROUP	Ways tests	7	Ws tests,Single content tests	1527409650578	1527409650608	12	OK
+REQUEST	Ways tests	7	Ws tests,Multi content tests	multiple ways	1527409650608	1527409650610	OK	 
+GROUP	Ways tests	7	Ws tests,Multi content tests	1527409650608	1527409650620	2	OK
+GROUP	Ways tests	7	Ws tests	1527409650544	1527409650620	35	OK
+USER	Ways tests	7	END	1527409650544	1527409650621
+USER	Ways diff tests	4	START	1527409650793	1527409650793
+REQUEST	Ways diff tests	4	Ws diff tests,Single tests	recreated	1527409650794	1527409650797	OK	 
+REQUEST	Ways diff tests	4	Ws diff tests,Single tests	recreated as untagged	1527409650801	1527409650803	OK	 
+REQUEST	Ways diff tests	4	Ws diff tests,Single tests	diff created	1527409650808	1527409650810	OK	 
+GROUP	Ways diff tests	4	Ws diff tests,Single tests	1527409650793	1527409650816	7	OK
+GROUP	Ways diff tests	4	Ws diff tests	1527409650793	1527409650816	7	OK
+REQUEST	Ways diff tests	4	Ws history tests,Single content tests	recreated	1527409650816	1527409650818	OK	 
+REQUEST	Ways diff tests	4	Ws history tests,Single content tests	recreated as untagged	1527409650830	1527409650833	OK	 
+REQUEST	Ways diff tests	4	Ws history tests,Single content tests	diff created	1527409650838	1527409650840	OK	 
+REQUEST	Ways diff tests	4	Ws history tests,Single content tests	diff created tagged	1527409650845	1527409650847	OK	 
+GROUP	Ways diff tests	4	Ws history tests,Single content tests	1527409650816	1527409650853	9	OK
+REQUEST	Ways diff tests	4	Ws history tests,Multi content tests	1 created 1 deleted tagged	1527409650854	1527409650856	OK	 
+GROUP	Ways diff tests	4	Ws history tests,Multi content tests	1527409650854	1527409650869	2	OK
+REQUEST	Ways diff tests	4	Ws history tests,multi response tests	1 deleted 1 missing	1527409650870	1527409650872	OK	 
+GROUP	Ways diff tests	4	Ws history tests,multi response tests	1527409650870	1527409650873	2	OK
+GROUP	Ways diff tests	4	Ws history tests	1527409650816	1527409650873	13	OK
+USER	Ways diff tests	4	END	1527409650793	1527409650873
+USER	Relation tests	6	START	1527409651044	1527409651044
+REQUEST	Relation tests	6	R tests,Accept header tests	*/*	1527409651044	1527409651049	OK	 
+REQUEST	Relation tests	6	R tests,Accept header tests	text/*	1527409651050	1527409651053	OK	 
+REQUEST	Relation tests	6	R tests,Accept header tests	text/xml	1527409651054	1527409651056	OK	 
+REQUEST	Relation tests	6	R tests,Accept header tests	invalid *	1527409651057	1527409651060	OK	 
+REQUEST	Relation tests	6	R tests,Accept header tests	invalid josm	1527409651061	1527409651063	OK	 
+GROUP	Relation tests	6	R tests,Accept header tests	1527409651044	1527409651064	15	OK
+REQUEST	Relation tests	6	R tests,Syntax tests	Invalid request	1527409651064	1527409651065	OK	 
+REQUEST	Relation tests	6	R tests,Syntax tests	Large ID	1527409651066	1527409651066	OK	 
+GROUP	Relation tests	6	R tests,Syntax tests	1527409651064	1527409651067	1	OK
+REQUEST	Relation tests	6	R tests,Overall tests	osm attributes	1527409651067	1527409651069	OK	 
+REQUEST	Relation tests	6	R tests,Overall tests	existing HEAD	1527409651071	1527409651073	OK	 
+REQUEST	Relation tests	6	R tests,Overall tests	missing	1527409651074	1527409651076	OK	 
+REQUEST	Relation tests	6	R tests,Overall tests	missing HEAD	1527409651077	1527409651078	OK	 
+GROUP	Relation tests	6	R tests,Overall tests	1527409651067	1527409651079	7	OK
+REQUEST	Relation tests	6	R tests,Content tests	node member	1527409651079	1527409651081	OK	 
+REQUEST	Relation tests	6	R tests,Content tests	way member	1527409651090	1527409651092	OK	 
+REQUEST	Relation tests	6	R tests,Content tests	relation member	1527409651101	1527409651103	OK	 
+REQUEST	Relation tests	6	R tests,Content tests	no members	1527409651112	1527409651114	OK	 
+REQUEST	Relation tests	6	R tests,Content tests	self-referential	1527409651123	1527409651126	OK	 
+REQUEST	Relation tests	6	R tests,Content tests	roles	1527409651140	1527409651143	OK	 
+REQUEST	Relation tests	6	R tests,Content tests	roles alternate	1527409651162	1527409651165	OK	 
+REQUEST	Relation tests	6	R tests,Content tests	anonymous	1527409651185	1527409651187	OK	 
+REQUEST	Relation tests	6	R tests,Content tests	tagged	1527409651197	1527409651199	OK	 
+GROUP	Relation tests	6	R tests,Content tests	1527409651079	1527409651212	21	OK
+GROUP	Relation tests	6	R tests	1527409651044	1527409651212	44	OK
+USER	Relation tests	6	END	1527409651044	1527409651212
+USER	Relation diff tests	13	START	1527409651303	1527409651303
+REQUEST	Relation diff tests	13	R diff tests,Content tests	recreated	1527409651304	1527409651307	OK	 
+REQUEST	Relation diff tests	13	R diff tests,Content tests	recreated as untagged	1527409651318	1527409651320	OK	 
+REQUEST	Relation diff tests	13	R diff tests,Content tests	diff created	1527409651327	1527409651329	OK	 
+REQUEST	Relation diff tests	13	R diff tests,Content tests	diff created	1527409651342	1527409651344	OK	 
+GROUP	Relation diff tests	13	R diff tests,Content tests	1527409651304	1527409651380	9	OK
+GROUP	Relation diff tests	13	R diff tests	1527409651304	1527409651380	9	OK
+REQUEST	Relation diff tests	13	R history tests	deleted	1527409651381	1527409651383	OK	 
+REQUEST	Relation diff tests	13	R history tests	deleted HEAD	1527409651384	1527409651387	OK	 
+REQUEST	Relation diff tests	13	R history tests	deleted tagged	1527409651388	1527409651390	OK	 
+REQUEST	Relation diff tests	13	R history tests	deleted tagged HEAD	1527409651391	1527409651394	OK	 
+GROUP	Relation diff tests	13	R history tests	1527409651380	1527409651396	10	OK
+USER	Relation diff tests	13	END	1527409651303	1527409651396
+USER	Relations tests	10	START	1527409651554	1527409651554
+REQUEST	Relations tests	10	Rs tests,Accept header tests	*/*	1527409651554	1527409651557	OK	 
+REQUEST	Relations tests	10	Rs tests,Accept header tests	text/*	1527409651558	1527409651560	OK	 
+REQUEST	Relations tests	10	Rs tests,Accept header tests	text/xml	1527409651561	1527409651563	OK	 
+REQUEST	Relations tests	10	Rs tests,Accept header tests	invalid *	1527409651564	1527409651566	OK	 
+REQUEST	Relations tests	10	Rs tests,Accept header tests	invalid josm	1527409651567	1527409651569	OK	 
+GROUP	Relations tests	10	Rs tests,Accept header tests	1527409651554	1527409651570	11	OK
+REQUEST	Relations tests	10	Rs tests,Multi deleted tests	1 missing 1 existing	1527409651570	1527409651572	OK	 
+REQUEST	Relations tests	10	Rs tests,Multi deleted tests	1 existing 1 missing	1527409651572	1527409651574	OK	 
+GROUP	Relations tests	10	Rs tests,Multi deleted tests	1527409651570	1527409651574	4	OK
+REQUEST	Relations tests	10	Rs tests,Syntax tests	Empty request	1527409651575	1527409651575	OK	 
+REQUEST	Relations tests	10	Rs tests,Syntax tests	Empty relations param	1527409651576	1527409651576	OK	 
+REQUEST	Relations tests	10	Rs tests,Syntax tests	Empty relations param	1527409651577	1527409651577	OK	 
+REQUEST	Relations tests	10	Rs tests,Syntax tests	Invalid relations param	1527409651578	1527409651578	OK	 
+REQUEST	Relations tests	10	Rs tests,Syntax tests	Invalid and valid relations param	1527409651579	1527409651579	OK	 
+REQUEST	Relations tests	10	Rs tests,Syntax tests	Large relation ID	1527409651580	1527409651581	OK	 
+GROUP	Relations tests	10	Rs tests,Syntax tests	1527409651575	1527409651581	1	OK
+REQUEST	Relations tests	10	Rs tests,Single content tests	node member	1527409651581	1527409651583	OK	 
+REQUEST	Relations tests	10	Rs tests,Single content tests	way member	1527409651591	1527409651593	OK	 
+REQUEST	Relations tests	10	Rs tests,Single content tests	relation member	1527409651601	1527409651603	OK	 
+REQUEST	Relations tests	10	Rs tests,Single content tests	no members	1527409651608	1527409651610	OK	 
+REQUEST	Relations tests	10	Rs tests,Single content tests	self-referential	1527409651615	1527409651617	OK	 
+REQUEST	Relations tests	10	Rs tests,Single content tests	roles	1527409651624	1527409651627	OK	 
+REQUEST	Relations tests	10	Rs tests,Single content tests	roles alternate	1527409651641	1527409651643	OK	 
+REQUEST	Relations tests	10	Rs tests,Single content tests	anonymous	1527409651667	1527409651669	OK	 
+REQUEST	Relations tests	10	Rs tests,Single content tests	tagged	1527409651675	1527409651678	OK	 
+GROUP	Relations tests	10	Rs tests,Single content tests	1527409651581	1527409651687	20	OK
+REQUEST	Relations tests	10	Rs tests,Multi content tests	multiple relations	1527409651688	1527409651690	OK	 
+REQUEST	Relations tests	10	Rs tests,Multi content tests	multiple roles/tags	1527409651718	1527409651721	OK	 
+GROUP	Relations tests	10	Rs tests,Multi content tests	1527409651687	1527409651758	5	OK
+GROUP	Relations tests	10	Rs tests	1527409651554	1527409651758	41	OK
+USER	Relations tests	10	END	1527409651554	1527409651758
+USER	Relations diff tests	12	START	1527409651804	1527409651804
+REQUEST	Relations diff tests	12	Rs diff tests,Single tests	recreated	1527409651804	1527409651808	OK	 
+REQUEST	Relations diff tests	12	Rs diff tests,Single tests	recreated as untagged	1527409651817	1527409651821	OK	 
+REQUEST	Relations diff tests	12	Rs diff tests,Single tests	diff created	1527409651828	1527409651831	OK	 
+REQUEST	Relations diff tests	12	Rs diff tests,Single tests	diff created	1527409651846	1527409651848	OK	 
+GROUP	Relations diff tests	12	Rs diff tests,Single tests	1527409651804	1527409651863	13	OK
+GROUP	Relations diff tests	12	Rs diff tests	1527409651804	1527409651863	13	OK
+REQUEST	Relations diff tests	12	Rs history tests,Single content	deleted	1527409651863	1527409651866	OK	 
+REQUEST	Relations diff tests	12	Rs history tests,Single content	deleted HEAD	1527409651875	1527409651878	OK	 
+GROUP	Relations diff tests	12	Rs history tests,Single content	1527409651863	1527409651878	6	OK
+REQUEST	Relations diff tests	12	Rs history tests,Multi content tests	1 created 1 deleted	1527409651879	1527409651881	OK	 
+GROUP	Relations diff tests	12	Rs history tests,Multi content tests	1527409651878	1527409651892	2	OK
+REQUEST	Relations diff tests	12	Rs history tests,multi response tests	1 deleted 1 missing	1527409651892	1527409651894	OK	 
+GROUP	Relations diff tests	12	Rs history tests,multi response tests	1527409651892	1527409651894	2	OK
+GROUP	Relations diff tests	12	Rs history tests	1527409651863	1527409651894	10	OK
+USER	Relations diff tests	12	END	1527409651804	1527409651895
+USER	Relation Full tests	14	START	1527409652053	1527409652053
+USER	Way Full tests	11	START	1527409652053	1527409652053
+REQUEST	Way Full tests	11	WF tests,Accept header tests	*/*	1527409652054	1527409652060	OK	 
+REQUEST	Way Full tests	11	WF tests,Accept header tests	text/*	1527409652061	1527409652065	OK	 
+REQUEST	Relation Full tests	14	RF tests,Accept header tests	*/*	1527409652054	1527409652068	OK	 
+REQUEST	Way Full tests	11	WF tests,Accept header tests	text/xml	1527409652066	1527409652071	OK	 
+REQUEST	Way Full tests	11	WF tests,Accept header tests	invalid *	1527409652072	1527409652075	OK	 
+REQUEST	Relation Full tests	14	RF tests,Accept header tests	text/*	1527409652069	1527409652078	OK	 
+REQUEST	Way Full tests	11	WF tests,Accept header tests	invalid josm	1527409652076	1527409652080	OK	 
+GROUP	Way Full tests	11	WF tests,Accept header tests	1527409652053	1527409652081	22	OK
+REQUEST	Way Full tests	11	WF tests,Syntax tests	Invalid request	1527409652082	1527409652082	OK	 
+REQUEST	Way Full tests	11	WF tests,Syntax tests	Large ID	1527409652083	1527409652084	OK	 
+GROUP	Way Full tests	11	WF tests,Syntax tests	1527409652081	1527409652084	1	OK
+REQUEST	Way Full tests	11	WF tests,Overall tests	osm attributes	1527409652084	1527409652088	OK	 
+REQUEST	Relation Full tests	14	RF tests,Accept header tests	text/xml	1527409652079	1527409652089	OK	 
+REQUEST	Way Full tests	11	WF tests,Overall tests	existing HEAD	1527409652090	1527409652093	OK	 
+REQUEST	Relation Full tests	14	RF tests,Accept header tests	invalid *	1527409652090	1527409652097	OK	 
+REQUEST	Way Full tests	11	WF tests,Overall tests	missing	1527409652094	1527409652098	OK	 
+REQUEST	Way Full tests	11	WF tests,Overall tests	missing HEAD	1527409652099	1527409652103	OK	 
+GROUP	Way Full tests	11	WF tests,Overall tests	1527409652084	1527409652104	15	OK
+REQUEST	Relation Full tests	14	RF tests,Accept header tests	invalid josm	1527409652099	1527409652110	OK	 
+GROUP	Relation Full tests	14	RF tests,Accept header tests	1527409652053	1527409652111	51	OK
+REQUEST	Relation Full tests	14	RF tests,Syntax tests	Invalid request	1527409652111	1527409652118	OK	 
+REQUEST	Relation Full tests	14	RF tests,Syntax tests	Large ID	1527409652119	1527409652122	OK	 
+GROUP	Relation Full tests	14	RF tests,Syntax tests	1527409652111	1527409652123	10	OK
+REQUEST	Relation Full tests	14	RF tests,Overall tests	osm attributes	1527409652123	1527409652130	OK	 
+REQUEST	Way Full tests	11	WF tests,Content tests	tagged way untagged nodes	1527409652104	1527409652107	OK	 
+REQUEST	Relation Full tests	14	RF tests,Overall tests	existing HEAD	1527409652133	1527409652143	OK	 
+REQUEST	Relation Full tests	14	RF tests,Overall tests	missing	1527409652145	1527409652151	OK	 
+REQUEST	Relation Full tests	14	RF tests,Overall tests	missing HEAD	1527409652153	1527409652160	OK	 
+GROUP	Relation Full tests	14	RF tests,Overall tests	1527409652123	1527409652161	30	OK
+REQUEST	Relation Full tests	14	RF tests,Content tests	node member	1527409652161	1527409652166	OK	 
+REQUEST	Way Full tests	11	WF tests,Content tests	tagged way tagged node	1527409652135	1527409652141	OK	 
+REQUEST	Relation Full tests	14	RF tests,Content tests	way member	1527409652175	1527409652183	OK	 
+REQUEST	Way Full tests	11	WF tests,Content tests	way with repeating nodes	1527409652185	1527409652196	OK	 
+GROUP	Way Full tests	11	WF tests,Content tests	1527409652104	1527409652215	20	OK
+GROUP	Way Full tests	11	WF tests	1527409652053	1527409652215	58	OK
+USER	Way Full tests	11	END	1527409652053	1527409652216
+REQUEST	Relation Full tests	14	RF tests,Content tests	relation member	1527409652214	1527409652220	OK	 
+REQUEST	Relation Full tests	14	RF tests,Content tests	relation non-recursion	1527409652226	1527409652232	OK	 
+GROUP	Relation Full tests	14	RF tests,Content tests	1527409652161	1527409652241	25	OK
+GROUP	Relation Full tests	14	RF tests	1527409652053	1527409652241	116	OK
+USER	Relation Full tests	14	END	1527409652053	1527409652241
+USER	Way Full diff tests	15	START	1527409652304	1527409652304
+REQUEST	Way Full diff tests	15	WF diff tests,Status tests	recreated	1527409652304	1527409652307	OK	 
+GROUP	Way Full diff tests	15	WF diff tests,Status tests	1527409652304	1527409652310	3	OK
+GROUP	Way Full diff tests	15	WF diff tests	1527409652304	1527409652310	3	OK
+REQUEST	Way Full diff tests	15	WF history tests	deleted	1527409652310	1527409652313	OK	 
+REQUEST	Way Full diff tests	15	WF history tests	deleted HEAD	1527409652314	1527409652317	OK	 
+GROUP	Way Full diff tests	15	WF history tests	1527409652310	1527409652318	6	OK
+USER	Way Full diff tests	15	END	1527409652304	1527409652318

@@ -61,7 +61,7 @@ func (o *OsmDB) GetRelationFull(id int64) (*osm.OSM, error) {
 		SELECT array_agg((members::osm_member).ref) FROM relation_members where (members::osm_member).type = 'relation'
 	), relations AS (
 		SELECT * FROM get_relation_by_id(
-				variadic (SELECT * FROM relation_ids)
+			variadic (SELECT * FROM relation_ids)
 		)
 		union
 		SELECT * FROM relation

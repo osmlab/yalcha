@@ -1,0 +1,18 @@
+{
+  "simulation": "osmapi.ApiSimulation",
+  "simulationId": "apisimulation",
+  "start": 1527409648057,
+  "description": "",
+  "scenarios": ["Node tests", "Node diff tests", "Nodes tests", "Nodes diff tests", "Way tests", "Way diff tests", "Ways tests", "Ways diff tests", "Relation tests", "Relation diff tests", "Relations tests", "Relations diff tests", "Way Full tests", "Relation Full tests", "Way Full diff tests"],
+  "assertions": [
+{
+  "path": "Global",
+  "target": "count of failed requests",
+  "condition": "is",
+  "expectedValues": [0.0],
+  "result": true,
+  "message": "Global: count of failed requests is 0.0",
+  "actualValue": [0.0]
+}
+  ]
+}

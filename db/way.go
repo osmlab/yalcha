@@ -10,17 +10,18 @@ import (
 // GetWay selects way from database by id
 func (o *OsmDB) GetWay(id int64) (*osm.Way, error) {
 	wayQuery := fmt.Sprintf(`
-SELECT
-    id, 
-    visible, 
-    version,
-    "user",
-    uid,
-    changeset, 
-    timestamp,
-    COALESCE(to_json(nodes), '[]') AS nodes,
-    COALESCE(to_json(tags), '[]') AS tags
-FROM get_way_by_id(%v)`, id)
+	SELECT
+		id, 
+		visible, 
+		version,
+		"user",
+		uid,
+		changeset, 
+		timestamp,
+		COALESCE(to_json(nodes), '[]') AS nodes,
+		COALESCE(to_json(tags), '[]') AS tags
+	FROM get_way_by_id(%v)
+	`, id)
 
 	var user sql.NullString
 	var userID sql.NullInt64
@@ -87,18 +88,18 @@ func (o *OsmDB) GetWays(ids []int64) (*osm.Ways, error) {
 	}
 
 	waysQuery := fmt.Sprintf(`
-SELECT
-	id, 
-	visible, 
-	version,
-	"user",
-	uid,
-	changeset, 
-	timestamp,
-	COALESCE(to_json(nodes), '[]') AS nodes,
-	COALESCE(to_json(tags), '[]') AS tags
-FROM get_way_by_id(%v)
-`, arrayToString(ids))
+	SELECT
+		id, 
+		visible, 
+		version,
+		"user",
+		uid,
+		changeset, 
+		timestamp,
+		COALESCE(to_json(nodes), '[]') AS nodes,
+		COALESCE(to_json(tags), '[]') AS tags
+	FROM get_way_by_id(%v)
+	`, arrayToString(ids))
 
 	rows, err := o.db.Query(waysQuery)
 	if err != nil {

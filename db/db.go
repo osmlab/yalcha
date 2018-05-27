@@ -5,11 +5,7 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq" // postgres adapter
-)
-
-const (
-	dbUser = "heorhi"
-	dbName = "gis"
+	"github.com/osmlab/yalcha/config"
 )
 
 // OsmDB contains logic to deal with Openstreetmap database
@@ -18,10 +14,9 @@ type OsmDB struct {
 }
 
 // Init returns new database connection
-func Init() (*OsmDB, error) {
-	dbinfo := fmt.Sprintf("user=%s dbname=%s sslmode=disable",
-		dbUser, dbName)
-
+func Init(config config.DB) (*OsmDB, error) {
+	dbinfo := fmt.Sprintf("host=%v port=%v user=%v password=%v dbname=%v sslmode=disable",
+		config.Host, config.Port, config.User, config.Password, config.DBName)
 	conn, err := sqlx.Open("postgres", dbinfo)
 	return &OsmDB{db: conn}, err
 }
