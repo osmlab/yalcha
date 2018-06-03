@@ -82,6 +82,26 @@ func (s *Server) GetRelationFull(c echo.Context) error {
 	return xml.NewEncoder(c.Response()).Encode(osm)
 }
 
+// GetRelationHistory returns relation history by id
+func (s *Server) GetRelationHistory(c echo.Context) error {
+	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		s.SetEmptyResultHeaders(c, http.StatusNotFound)
+		return err
+	}
+	relations, err := s.db.GetRelationHistory(id)
+	if err != nil {
+		s.SetEmptyResultHeaders(c, http.StatusNotFound)
+		return err
+	}
+
+	resp := osm.New()
+	resp.Relations = *relations
+
+	s.SetHeaders(c)
+	return xml.NewEncoder(c.Response()).Encode(resp)
+}
+
 // GetRelations returns relations by ids
 func (s *Server) GetRelations(c echo.Context) error {
 	relationIDsString := strings.Split(c.QueryParam("relations"), ",")

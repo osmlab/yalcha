@@ -87,6 +87,26 @@ func (s *Server) GetWayFull(c echo.Context) error {
 	return xml.NewEncoder(c.Response()).Encode(osm)
 }
 
+// GetWayHistory returns way history by id
+func (s *Server) GetWayHistory(c echo.Context) error {
+	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		s.SetEmptyResultHeaders(c, http.StatusNotFound)
+		return err
+	}
+	ways, err := s.db.GetWayHistory(id)
+	if err != nil {
+		s.SetEmptyResultHeaders(c, http.StatusNotFound)
+		return err
+	}
+
+	resp := osm.New()
+	resp.Ways = *ways
+
+	s.SetHeaders(c)
+	return xml.NewEncoder(c.Response()).Encode(resp)
+}
+
 // GetWays returns ways by ids
 func (s *Server) GetWays(c echo.Context) error {
 	wayIDsString := strings.Split(c.QueryParam("ways"), ",")

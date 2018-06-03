@@ -145,6 +145,60 @@ func (o *OsmDB) GetRelationFull(id int64) (*osm.OSM, error) {
 	return osm, err
 }
 
+// GetRelationHistory selects relation history from databASe by id
+func (o *OsmDB) GetRelationHistory(id int64) (*osm.Relations, error) {
+	query := fmt.Sprintf(`
+	SELECT
+		id, 
+		visible, 
+		version,  
+		"user",
+		uid,
+		changeset,
+		timestamp,
+		COALESCE(to_json(tags), '[]') AS tags,
+		COALESCE(to_json(members), '[]') AS members
+	FROM get_relation_history_by_id(%v)`, id)
+
+	rows, err := o.db.Query(query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	relations := &osm.Relations{}
+	for rows.Next() {
+		var user sql.NullString
+		var userID sql.NullInt64
+		relation := &osm.Relation{}
+		err := rows.Scan(
+			&relation.ID,
+			&relation.Visible,
+			&relation.Version,
+			&user,
+			&userID,
+			&relation.ChangesetID,
+			&relation.Timestamp,
+			&relation.Tags,
+			&relation.Members,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		if userID.Valid {
+			relation.UserID = &userID.Int64
+			if user.Valid {
+				relation.User = &user.String
+			}
+		}
+
+		*relations = append(*relations, relation)
+	}
+
+	return relations, nil
+}
+
 // GetRelations returns relations by ids
 func (o *OsmDB) GetRelations(ids []int64, idvs [][2]int64) (*osm.Relations, error) {
 	if len(ids) == 0 &&

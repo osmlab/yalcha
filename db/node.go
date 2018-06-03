@@ -97,6 +97,63 @@ FROM get_node_by_id_and_version(array[[%v, %v]])`, id, version)
 	return node, nil
 }
 
+// GetNodeHistory selects node history from database by id
+func (o *OsmDB) GetNodeHistory(id int64) (*osm.Nodes, error) {
+	query := fmt.Sprintf(`
+	SELECT
+		id, 
+		visible, 
+		version, 
+		lat, 
+		lon, 
+		changeset, 
+		"user",
+		uid, 
+		timestamp,
+		COALESCE(to_json(tags), '[]') AS tags
+	FROM get_node_history_by_id(%v)
+	`, id)
+
+	rows, err := o.db.Query(query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	nodes := &osm.Nodes{}
+	for rows.Next() {
+		var user sql.NullString
+		var userID sql.NullInt64
+		node := &osm.Node{}
+		err := rows.Scan(
+			&node.ID,
+			&node.Visible,
+			&node.Version,
+			&node.Lat,
+			&node.Lon,
+			&node.ChangesetID,
+			&user,
+			&userID,
+			&node.Timestamp,
+			&node.Tags,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		if userID.Valid {
+			node.UserID = &userID.Int64
+			if user.Valid {
+				node.User = &user.String
+			}
+		}
+
+		*nodes = append(*nodes, node)
+	}
+
+	return nodes, nil
+}
+
 // GetNodes selects nodes from database by ids
 func (o *OsmDB) GetNodes(ids []int64, idvs [][2]int64) (*osm.Nodes, error) {
 	if len(ids) == 0 &&
