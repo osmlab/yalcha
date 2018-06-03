@@ -20,6 +20,8 @@ func Load(config *config.Config, s *server.Server) *echo.Echo {
 	node06 := api06.Group("/node")
 	node06.HEAD("/:id", s.GetNode)
 	node06.GET("/:id", s.GetNode)
+	node06.HEAD("/:id/:version", s.GetNodeByVersion)
+	node06.GET("/:id/:version", s.GetNodeByVersion)
 
 	nodes06 := api06.Group("/nodes")
 	nodes06.HEAD("", s.GetNodes)
@@ -28,6 +30,8 @@ func Load(config *config.Config, s *server.Server) *echo.Echo {
 	way06 := api06.Group("/way")
 	way06.HEAD("/:id", s.GetWay)
 	way06.GET("/:id", s.GetWay)
+	way06.HEAD("/:id/:version", s.GetWayByVersion)
+	way06.GET("/:id/:version", s.GetWayByVersion)
 	way06.HEAD("/:id/full", s.GetWayFull)
 	way06.GET("/:id/full", s.GetWayFull)
 
@@ -38,6 +42,8 @@ func Load(config *config.Config, s *server.Server) *echo.Echo {
 	relation06 := api06.Group("/relation")
 	relation06.HEAD("/:id", s.GetRelation)
 	relation06.GET("/:id", s.GetRelation)
+	relation06.HEAD("/:id/:version", s.GetRelationByVersion)
+	relation06.GET("/:id/:version", s.GetRelationByVersion)
 	relation06.HEAD("/:id/full", s.GetRelationFull)
 	relation06.GET("/:id/full", s.GetRelationFull)
 

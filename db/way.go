@@ -51,6 +51,50 @@ func (o *OsmDB) GetWay(id int64) (*osm.Way, error) {
 	return way, nil
 }
 
+// GetWayByVersion selects way from database by id and version
+func (o *OsmDB) GetWayByVersion(id, version int64) (*osm.Way, error) {
+	wayQuery := fmt.Sprintf(`
+	SELECT
+		id, 
+		visible, 
+		version,
+		"user",
+		uid,
+		changeset, 
+		timestamp,
+		COALESCE(to_json(nodes), '[]') AS nodes,
+		COALESCE(to_json(tags), '[]') AS tags
+	FROM get_way_by_id_and_version(array[[%v, %v]])
+	`, id, version)
+
+	var user sql.NullString
+	var userID sql.NullInt64
+	way := &osm.Way{}
+	err := o.db.QueryRow(wayQuery).Scan(
+		&way.ID,
+		&way.Visible,
+		&way.Version,
+		&user,
+		&userID,
+		&way.ChangesetID,
+		&way.Timestamp,
+		&way.Nodes,
+		&way.Tags,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	if userID.Valid {
+		way.UserID = &userID.Int64
+		if user.Valid {
+			way.User = &user.String
+		}
+	}
+
+	return way, nil
+}
+
 // GetWayFull selects way with internal nodes from database by id
 func (o *OsmDB) GetWayFull(id int64) (*osm.OSM, error) {
 	query := fmt.Sprintf(`
@@ -82,26 +126,48 @@ func (o *OsmDB) GetWayFull(id int64) (*osm.OSM, error) {
 }
 
 // GetWays returns ways by ids
-func (o *OsmDB) GetWays(ids []int64) (*osm.Ways, error) {
-	if len(ids) == 0 {
+func (o *OsmDB) GetWays(ids []int64, idvs [][2]int64) (*osm.Ways, error) {
+	if len(ids) == 0 &&
+		len(idvs) == 0 {
 		return nil, nil
 	}
 
-	waysQuery := fmt.Sprintf(`
-	SELECT
-		id, 
-		visible, 
-		version,
-		"user",
-		uid,
-		changeset, 
-		timestamp,
-		COALESCE(to_json(nodes), '[]') AS nodes,
-		COALESCE(to_json(tags), '[]') AS tags
-	FROM get_way_by_id(%v)
-	`, arrayToString(ids))
+	query := ""
+	if len(ids) > 0 {
+		query = fmt.Sprintf(`
+		SELECT
+			id, 
+			visible, 
+			version,
+			"user",
+			uid,
+			changeset, 
+			timestamp,
+			COALESCE(to_jsonb(nodes), '[]') AS nodes,
+			COALESCE(to_jsonb(tags), '[]') AS tags
+		FROM get_way_by_id(%v)
+		`, arrayToString(ids))
+	}
+	if len(idvs) > 0 {
+		if len(query) > 0 {
+			query += "UNION"
+		}
+		query += fmt.Sprintf(`
+		SELECT
+			id, 
+			visible, 
+			version,
+			"user",
+			uid,
+			changeset, 
+			timestamp,
+			COALESCE(to_jsonb(nodes), '[]') AS nodes,
+			COALESCE(to_jsonb(tags), '[]') AS tags
+		FROM get_way_by_id_and_version(array[[%v]])
+		`, versionArrayToString(idvs))
+	}
 
-	rows, err := o.db.Query(waysQuery)
+	rows, err := o.db.Query(query)
 	if err != nil {
 		return nil, err
 	}
