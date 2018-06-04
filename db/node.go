@@ -154,6 +154,61 @@ func (o *OsmDB) GetNodeHistory(id int64) (osm.Nodes, error) {
 	return nodes, nil
 }
 
+// GetWaysForNode returns all the (not deleted) ways in which the given node is used
+func (o *OsmDB) GetWaysForNode(id int64) (*osm.Ways, error) {
+	query := fmt.Sprintf(`
+	SELECT
+		id, 
+		visible, 
+		version,
+		"user",
+		uid,
+		changeset, 
+		timestamp,
+		COALESCE(to_json(nodes), '[]') AS nodes,
+		COALESCE(to_json(tags), '[]') AS tags
+	FROM get_ways_for_node(%v)
+	`, id)
+
+	rows, err := o.db.Query(query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	ways := &osm.Ways{}
+	for rows.Next() {
+		var user sql.NullString
+		var userID sql.NullInt64
+		way := &osm.Way{}
+		err := rows.Scan(
+			&way.ID,
+			&way.Visible,
+			&way.Version,
+			&user,
+			&userID,
+			&way.ChangesetID,
+			&way.Timestamp,
+			&way.Nodes,
+			&way.Tags,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		if userID.Valid {
+			way.UserID = &userID.Int64
+			if user.Valid {
+				way.User = &user.String
+			}
+		}
+
+		*ways = append(*ways, way)
+	}
+
+	return ways, nil
+}
+
 // GetNodes selects nodes from database by ids
 func (o *OsmDB) GetNodes(ids []int64, idvs [][2]int64) (osm.Nodes, error) {
 	if len(ids) == 0 &&

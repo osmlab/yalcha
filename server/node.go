@@ -85,6 +85,26 @@ func (s *Server) GetNodeHistory(c echo.Context) error {
 	return xml.NewEncoder(c.Response()).Encode(resp)
 }
 
+// GetWaysForNode returns all the (not deleted) ways in which the given node is used
+func (s *Server) GetWaysForNode(c echo.Context) error {
+	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		s.SetEmptyResultHeaders(c, http.StatusNotFound)
+		return err
+	}
+	ways, err := s.db.GetWaysForNode(id)
+	if err != nil {
+		s.SetEmptyResultHeaders(c, http.StatusNotFound)
+		return err
+	}
+
+	resp := osm.New()
+	resp.Ways = *ways
+
+	s.SetHeaders(c)
+	return xml.NewEncoder(c.Response()).Encode(resp)
+}
+
 // GetNodes returns nodes by ids
 func (s *Server) GetNodes(c echo.Context) error {
 	nodeIDsString := strings.Split(c.QueryParam("nodes"), ",")
