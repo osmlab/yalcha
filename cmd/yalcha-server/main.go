@@ -15,7 +15,7 @@ func main() {
 		Database: config.DB{
 			Host:     "localhost",
 			Port:     "5432",
-			DBName:   "gis",
+			DBName:   "openstreetmap",
 			User:     "heorhi",
 			Password: "some_password",
 		},
