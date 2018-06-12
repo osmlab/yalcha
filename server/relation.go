@@ -96,7 +96,7 @@ func (s *Server) GetRelationHistory(c echo.Context) error {
 	}
 
 	resp := osm.New()
-	resp.Relations = *relations
+	resp.Relations = relations
 
 	s.SetHeaders(c)
 	return xml.NewEncoder(c.Response()).Encode(resp)
@@ -137,13 +137,13 @@ func (s *Server) GetRelations(c echo.Context) error {
 		return err
 	}
 
-	if len(*relations) != len(cIDs)+len(nIDsVs) {
+	if len(relations) != len(cIDs)+len(nIDsVs) {
 		s.SetEmptyResultHeaders(c, http.StatusNotFound)
 		return nil
 	}
 
 	resp := osm.New()
-	resp.Relations = *relations
+	resp.Relations = relations
 
 	s.SetHeaders(c)
 	return xml.NewEncoder(c.Response()).Encode(resp)

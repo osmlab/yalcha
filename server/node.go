@@ -79,7 +79,7 @@ func (s *Server) GetNodeHistory(c echo.Context) error {
 	}
 
 	resp := osm.New()
-	resp.Nodes = *nodes
+	resp.Nodes = nodes
 
 	s.SetHeaders(c)
 	return xml.NewEncoder(c.Response()).Encode(resp)
@@ -120,13 +120,13 @@ func (s *Server) GetNodes(c echo.Context) error {
 		return err
 	}
 
-	if len(*nodes) != len(cIDs)+len(nIDsVs) {
+	if len(nodes) != len(cIDs)+len(nIDsVs) {
 		s.SetEmptyResultHeaders(c, http.StatusNotFound)
 		return nil
 	}
 
 	resp := osm.New()
-	for _, node := range *nodes {
+	for _, node := range nodes {
 		if !node.Visible {
 			node.Lat = nil
 			node.Lon = nil
