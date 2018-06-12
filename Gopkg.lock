@@ -59,12 +59,6 @@
 
 [[projects]]
   branch = "master"
-  name = "github.com/paulmach/orb"
-  packages = ["."]
-  revision = "40186a72e24c33c495ac9da7390b1a1e69670b40"
-
-[[projects]]
-  branch = "master"
   name = "github.com/valyala/bytebufferpool"
   packages = ["."]
   revision = "e746df99fe4a3986f4d4f79e13c1e0117ce9c2f7"
@@ -93,6 +87,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "29d7f4a04ce7132fbe08f7f175a8d88f7246886f8194658a4c7604853e249b34"
+  inputs-digest = "b3d4d57de0ed3fad3ca2c3addcc2afb2ac58172a19c057724e9d87990c5aad32"
   solver-name = "gps-cdcl"
   solver-version = 1

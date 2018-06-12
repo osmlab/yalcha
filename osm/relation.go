@@ -3,8 +3,6 @@ package osm
 import (
 	"encoding/json"
 	"encoding/xml"
-
-	"github.com/paulmach/orb"
 )
 
 // xmlNameJSONTypeRel is kind of a hack to encode the proper json
@@ -43,18 +41,6 @@ type Member struct {
 	Type string `xml:"type,attr" json:"type"`
 	Ref  int64  `xml:"ref,attr" json:"ref"`
 	Role string `xml:"role,attr" json:"role"`
-
-	Version     int   `xml:"version,attr,omitempty" json:"version,omitempty"`
-	ChangesetID int64 `xml:"changeset,attr,omitempty" json:"changeset,omitempty"`
-	// Node location if Type == Node
-	// Closest vertex to centroid if Type == Way
-	// Empty/invalid if Type == Relation
-	Lat float64 `xml:"lat,attr,omitempty" json:"lat,omitempty"`
-	Lon float64 `xml:"lon,attr,omitempty" json:"lon,omitempty"`
-
-	// Orientation is the direction of the way around a ring of a multipolygon.
-	// Only valid for multipolygon or boundary relations.
-	Orientation orb.Orientation `xml:"orienation,attr,omitempty" json:"orienation,omitempty"`
 }
 
 // ObjectID returns the object id of the relation.
