@@ -11,12 +11,12 @@ import (
 func (o *OsmDB) GetWay(id int64) (*osm.Way, error) {
 	wayQuery := fmt.Sprintf(`
 	SELECT
-		id, 
-		visible, 
+		id,
+		visible,
 		version,
 		"user",
 		uid,
-		changeset, 
+		changeset,
 		timestamp,
 		COALESCE(to_json(nodes), '[]') AS nodes,
 		COALESCE(to_json(tags), '[]') AS tags
@@ -55,12 +55,12 @@ func (o *OsmDB) GetWay(id int64) (*osm.Way, error) {
 func (o *OsmDB) GetWayByVersion(id, version int64) (*osm.Way, error) {
 	wayQuery := fmt.Sprintf(`
 	SELECT
-		id, 
-		visible, 
+		id,
+		visible,
 		version,
 		"user",
 		uid,
-		changeset, 
+		changeset,
 		timestamp,
 		COALESCE(to_json(nodes), '[]') AS nodes,
 		COALESCE(to_json(tags), '[]') AS tags
@@ -126,15 +126,15 @@ func (o *OsmDB) GetWayFull(id int64) (*osm.OSM, error) {
 }
 
 // GetWayHistory selects way history from database by id
-func (o *OsmDB) GetWayHistory(id int64) (*osm.Ways, error) {
+func (o *OsmDB) GetWayHistory(id int64) (osm.Ways, error) {
 	query := fmt.Sprintf(`
 	SELECT
-		id, 
-		visible, 
+		id,
+		visible,
 		version,
 		"user",
 		uid,
-		changeset, 
+		changeset,
 		timestamp,
 		COALESCE(to_json(nodes), '[]') AS nodes,
 		COALESCE(to_json(tags), '[]') AS tags
@@ -147,7 +147,7 @@ func (o *OsmDB) GetWayHistory(id int64) (*osm.Ways, error) {
 	}
 	defer rows.Close()
 
-	ways := &osm.Ways{}
+	var ways osm.Ways
 	for rows.Next() {
 		var user sql.NullString
 		var userID sql.NullInt64
@@ -174,14 +174,14 @@ func (o *OsmDB) GetWayHistory(id int64) (*osm.Ways, error) {
 			}
 		}
 
-		*ways = append(*ways, way)
+		ways = append(ways, way)
 	}
 
 	return ways, nil
 }
 
 // GetWays returns ways by ids
-func (o *OsmDB) GetWays(ids []int64, idvs [][2]int64) (*osm.Ways, error) {
+func (o *OsmDB) GetWays(ids []int64, idvs [][2]int64) (osm.Ways, error) {
 	if len(ids) == 0 &&
 		len(idvs) == 0 {
 		return nil, nil
@@ -191,12 +191,12 @@ func (o *OsmDB) GetWays(ids []int64, idvs [][2]int64) (*osm.Ways, error) {
 	if len(ids) > 0 {
 		query = fmt.Sprintf(`
 		SELECT
-			id, 
-			visible, 
+			id,
+			visible,
 			version,
 			"user",
 			uid,
-			changeset, 
+			changeset,
 			timestamp,
 			COALESCE(to_jsonb(nodes), '[]') AS nodes,
 			COALESCE(to_jsonb(tags), '[]') AS tags
@@ -209,12 +209,12 @@ func (o *OsmDB) GetWays(ids []int64, idvs [][2]int64) (*osm.Ways, error) {
 		}
 		query += fmt.Sprintf(`
 		SELECT
-			id, 
-			visible, 
+			id,
+			visible,
 			version,
 			"user",
 			uid,
-			changeset, 
+			changeset,
 			timestamp,
 			COALESCE(to_jsonb(nodes), '[]') AS nodes,
 			COALESCE(to_jsonb(tags), '[]') AS tags
@@ -228,7 +228,7 @@ func (o *OsmDB) GetWays(ids []int64, idvs [][2]int64) (*osm.Ways, error) {
 	}
 	defer rows.Close()
 
-	ways := &osm.Ways{}
+	var ways osm.Ways
 	for rows.Next() {
 		var user sql.NullString
 		var userID sql.NullInt64
@@ -255,7 +255,7 @@ func (o *OsmDB) GetWays(ids []int64, idvs [][2]int64) (*osm.Ways, error) {
 			}
 		}
 
-		*ways = append(*ways, way)
+		ways = append(ways, way)
 	}
 
 	return ways, nil

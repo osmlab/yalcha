@@ -101,7 +101,7 @@ func (s *Server) GetWayHistory(c echo.Context) error {
 	}
 
 	resp := osm.New()
-	resp.Ways = *ways
+	resp.Ways = ways
 
 	s.SetHeaders(c)
 	return xml.NewEncoder(c.Response()).Encode(resp)
@@ -142,13 +142,13 @@ func (s *Server) GetWays(c echo.Context) error {
 		return err
 	}
 
-	if len(*ways) != len(cIDs)+len(nIDsVs) {
+	if len(ways) != len(cIDs)+len(nIDsVs) {
 		s.SetEmptyResultHeaders(c, http.StatusNotFound)
 		return nil
 	}
 
 	resp := osm.New()
-	resp.Ways = *ways
+	resp.Ways = ways
 
 	s.SetHeaders(c)
 	return xml.NewEncoder(c.Response()).Encode(resp)

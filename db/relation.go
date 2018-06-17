@@ -11,9 +11,9 @@ import (
 func (o *OsmDB) GetRelation(id int64) (*osm.Relation, error) {
 	relationQuery := fmt.Sprintf(`
 	SELECT
-		id, 
-		visible, 
-		version,  
+		id,
+		visible,
+		version,
 		"user",
 		uid,
 		changeset,
@@ -54,9 +54,9 @@ func (o *OsmDB) GetRelation(id int64) (*osm.Relation, error) {
 func (o *OsmDB) GetRelationByVersion(id, version int64) (*osm.Relation, error) {
 	relationQuery := fmt.Sprintf(`
 	SELECT
-		id, 
-		visible, 
-		version,  
+		id,
+		visible,
+		version,
 		"user",
 		uid,
 		changeset,
@@ -133,7 +133,7 @@ func (o *OsmDB) GetRelationFull(id int64) (*osm.OSM, error) {
 		SELECT array_to_json(array_agg(n)) AS nodes FROM nodes n
 	)
 	SELECT COALESCE(r.relations, '[]'), COALESCE(w.ways, '[]'), COALESCE(n.nodes, '[]')
-	FROM relations_array r, ways_array w, nodes_array n	
+	FROM relations_array r, ways_array w, nodes_array n
 	`, id)
 
 	osm := osm.New()
@@ -146,12 +146,12 @@ func (o *OsmDB) GetRelationFull(id int64) (*osm.OSM, error) {
 }
 
 // GetRelationHistory selects relation history from databASe by id
-func (o *OsmDB) GetRelationHistory(id int64) (*osm.Relations, error) {
+func (o *OsmDB) GetRelationHistory(id int64) (osm.Relations, error) {
 	query := fmt.Sprintf(`
 	SELECT
-		id, 
-		visible, 
-		version,  
+		id,
+		visible,
+		version,
 		"user",
 		uid,
 		changeset,
@@ -166,7 +166,7 @@ func (o *OsmDB) GetRelationHistory(id int64) (*osm.Relations, error) {
 	}
 	defer rows.Close()
 
-	relations := &osm.Relations{}
+	var relations osm.Relations
 	for rows.Next() {
 		var user sql.NullString
 		var userID sql.NullInt64
@@ -193,14 +193,14 @@ func (o *OsmDB) GetRelationHistory(id int64) (*osm.Relations, error) {
 			}
 		}
 
-		*relations = append(*relations, relation)
+		relations = append(relations, relation)
 	}
 
 	return relations, nil
 }
 
 // GetRelations returns relations by ids
-func (o *OsmDB) GetRelations(ids []int64, idvs [][2]int64) (*osm.Relations, error) {
+func (o *OsmDB) GetRelations(ids []int64, idvs [][2]int64) (osm.Relations, error) {
 	if len(ids) == 0 &&
 		len(idvs) == 0 {
 		return nil, nil
@@ -210,9 +210,9 @@ func (o *OsmDB) GetRelations(ids []int64, idvs [][2]int64) (*osm.Relations, erro
 	if len(ids) > 0 {
 		query = fmt.Sprintf(`
 		SELECT
-			id, 
-			visible, 
-			version,  
+			id,
+			visible,
+			version,
 			"user",
 			uid,
 			changeset,
@@ -228,9 +228,9 @@ func (o *OsmDB) GetRelations(ids []int64, idvs [][2]int64) (*osm.Relations, erro
 		}
 		query += fmt.Sprintf(`
 		SELECT
-			id, 
-			visible, 
-			version,  
+			id,
+			visible,
+			version,
 			"user",
 			uid,
 			changeset,
@@ -247,7 +247,7 @@ func (o *OsmDB) GetRelations(ids []int64, idvs [][2]int64) (*osm.Relations, erro
 	}
 	defer rows.Close()
 
-	relations := &osm.Relations{}
+	var relations osm.Relations
 	for rows.Next() {
 		var user sql.NullString
 		var userID sql.NullInt64
@@ -274,7 +274,7 @@ func (o *OsmDB) GetRelations(ids []int64, idvs [][2]int64) (*osm.Relations, erro
 			}
 		}
 
-		*relations = append(*relations, relation)
+		relations = append(relations, relation)
 	}
 
 	return relations, nil

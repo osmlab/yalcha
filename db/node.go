@@ -11,14 +11,14 @@ import (
 func (o *OsmDB) GetNode(id int64) (*osm.Node, error) {
 	nodeQuery := fmt.Sprintf(`
 SELECT
-	id, 
-	visible, 
-	version, 
-	lat, 
-	lon, 
-	changeset, 
+	id,
+	visible,
+	version,
+	lat,
+	lon,
+	changeset,
 	"user",
-	uid, 
+	uid,
 	timestamp,
 	COALESCE(to_json(tags), '[]') AS tags
 FROM get_node_by_id(%v)`, id)
@@ -59,7 +59,7 @@ SELECT
 	id,
 	visible,
 	version,
-	lat, 
+	lat,
 	lon,
 	changeset,
 	"user",
@@ -98,17 +98,17 @@ FROM get_node_by_id_and_version(array[[%v, %v]])`, id, version)
 }
 
 // GetNodeHistory selects node history from database by id
-func (o *OsmDB) GetNodeHistory(id int64) (*osm.Nodes, error) {
+func (o *OsmDB) GetNodeHistory(id int64) (osm.Nodes, error) {
 	query := fmt.Sprintf(`
 	SELECT
-		id, 
-		visible, 
-		version, 
-		lat, 
-		lon, 
-		changeset, 
+		id,
+		visible,
+		version,
+		lat,
+		lon,
+		changeset,
 		"user",
-		uid, 
+		uid,
 		timestamp,
 		COALESCE(to_json(tags), '[]') AS tags
 	FROM get_node_history_by_id(%v)
@@ -120,7 +120,7 @@ func (o *OsmDB) GetNodeHistory(id int64) (*osm.Nodes, error) {
 	}
 	defer rows.Close()
 
-	nodes := &osm.Nodes{}
+	var nodes osm.Nodes
 	for rows.Next() {
 		var user sql.NullString
 		var userID sql.NullInt64
@@ -148,14 +148,14 @@ func (o *OsmDB) GetNodeHistory(id int64) (*osm.Nodes, error) {
 			}
 		}
 
-		*nodes = append(*nodes, node)
+		nodes = append(nodes, node)
 	}
 
 	return nodes, nil
 }
 
 // GetNodes selects nodes from database by ids
-func (o *OsmDB) GetNodes(ids []int64, idvs [][2]int64) (*osm.Nodes, error) {
+func (o *OsmDB) GetNodes(ids []int64, idvs [][2]int64) (osm.Nodes, error) {
 	if len(ids) == 0 &&
 		len(idvs) == 0 {
 		return nil, nil
@@ -204,7 +204,7 @@ func (o *OsmDB) GetNodes(ids []int64, idvs [][2]int64) (*osm.Nodes, error) {
 	}
 	defer rows.Close()
 
-	nodes := &osm.Nodes{}
+	var nodes osm.Nodes
 	for rows.Next() {
 		var user sql.NullString
 		var userID sql.NullInt64
@@ -232,7 +232,7 @@ func (o *OsmDB) GetNodes(ids []int64, idvs [][2]int64) (*osm.Nodes, error) {
 			}
 		}
 
-		*nodes = append(*nodes, node)
+		nodes = append(nodes, node)
 	}
 
 	return nodes, nil
