@@ -24,7 +24,7 @@ type Node struct {
 	Visible     bool                `db:"visible" xml:"visible,attr" json:"visible"`
 	Version     int                 `db:"version" xml:"version,attr" json:"version,omitempty"`
 	ChangesetID int64               `db:"changeset" xml:"changeset,attr" json:"changeset,omitempty"`
-	Timestamp   TimeOSM             `db:"timestamp" xml:"timestamp,attr" json:"timestamp"`
+	Timestamp   Time                `db:"timestamp" xml:"timestamp,attr" json:"timestamp"`
 	Tags        Tags                `db:"tags" xml:"tag" json:"tags,omitempty"`
 }
 

@@ -22,7 +22,7 @@ type Way struct {
 	User        *string            `db:"user" xml:"user,attr,omitempty" json:"user,omitempty"`
 	UserID      *int64             `db:"uid" xml:"uid,attr,omitempty" json:"uid,omitempty"`
 	ChangesetID int64              `db:"changeset" xml:"changeset,attr" json:"changeset,omitempty"`
-	Timestamp   TimeOSM            `db:"timestamp" xml:"timestamp,attr" json:"timestamp"`
+	Timestamp   Time               `db:"timestamp" xml:"timestamp,attr" json:"timestamp"`
 	Nodes       wayNodes           `db:"nodes" xml:"nd" json:"nodes"`
 	Tags        Tags               `db:"tags" xml:"tag" json:"tags,omitempty"`
 }

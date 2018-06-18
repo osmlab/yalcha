@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-func TestTimeOSMString(t *testing.T) {
+func TestTimeString(t *testing.T) {
 	newYork, err := time.LoadLocation("America/New_York")
 	if err != nil {
 		t.Fatalf("invalid timezone: %v", err)
@@ -30,7 +30,7 @@ func TestTimeOSMString(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			tosm := TimeOSM(tc.time)
+			tosm := Time(tc.time)
 			if v := tosm.String(); v != tc.expected {
 				t.Errorf("incorrect format: %v", v)
 			}
