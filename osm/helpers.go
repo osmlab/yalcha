@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-const osmTimeFormat = "2006-01-02T15:04:05"
+const osmTimeFormat = "2006-01-02T15:04:05Z"
 
 // Tag represents osm tag
 type Tag struct {
@@ -27,7 +27,7 @@ func (ts *Tags) Scan(value interface{}) error {
 type TimeOSM time.Time
 
 func (t *TimeOSM) String() string {
-	return time.Time(*t).Format(osmTimeFormat)
+	return time.Time(*t).UTC().Format(osmTimeFormat)
 }
 
 // Scan - Implement the database/sql scanner interface
