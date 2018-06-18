@@ -1,7 +1,0 @@
-{
-    "name": "yalcha-reports",
-    "type": "static",
-    "static": {
-      "dir": "public"
-    }
-  }
