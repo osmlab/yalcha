@@ -109,6 +109,26 @@ func (o *OsmDB) GetNodesFromWays(ids []int64) ([]int64, error) {
 	return nodeIDs, nil
 }
 
+// GetNodesFromRelations selects nodes id from database by id and relations ids
+func (o *OsmDB) GetNodesFromRelations(ids []int64) ([]int64, error) {
+	rows, err := o.pool.Query(stmtNodesFromRelations, ids)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	nodeIDs := []int64{}
+	for rows.Next() {
+		var nodeID int64
+		if err := rows.Scan(&nodeID); err != nil {
+			return nil, err
+		}
+		nodeIDs = append(nodeIDs, nodeID)
+	}
+
+	return nodeIDs, nil
+}
+
 // GetNodeByVersion selects node from database by id and version
 func (o *OsmDB) GetNodeByVersion(id, version int64) (*osm.Node, error) {
 	nodeQuery := fmt.Sprintf(`

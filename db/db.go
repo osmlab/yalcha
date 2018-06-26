@@ -31,6 +31,9 @@ const (
 	stmtExtractHistoricWays       = "extract_historic_ways"
 	stmtExtractHistoricRelations  = "extract_historic_relations"
 	stmtNodesFromWays             = "nodes_from_ways"
+	stmtNodesFromRelations        = "nodes_from_relations"
+	stmtWaysFromRelations         = "ways_from_relations"
+	stmtRelationsFromRelations    = "relation_members_of_relations"
 )
 
 // OsmDB contains logic to deal with Openstreetmap database
@@ -523,6 +526,42 @@ func initStatements(conn *pgx.ConnPool) (map[string]*pgx.PreparedStatement, erro
 			SELECT DISTINCT wn.node_id AS id
 			FROM current_way_nodes wn
 			WHERE wn.way_id = ANY($1)
+		`),
+	); err != nil {
+		return nil, err
+	}
+
+	if _, err := conn.Prepare(
+		stmtNodesFromRelations,
+		strings.TrimSpace(`
+			SELECT DISTINCT rm.member_id AS id
+			FROM current_relation_members rm
+			WHERE rm.member_type = 'Node' AND 
+				  rm.relation_id = ANY($1)
+		`),
+	); err != nil {
+		return nil, err
+	}
+
+	if _, err := conn.Prepare(
+		stmtWaysFromRelations,
+		strings.TrimSpace(`
+			SELECT DISTINCT rm.member_id AS id
+			FROM current_relation_members rm
+			WHERE rm.member_type = 'Way' AND 
+				  rm.relation_id = ANY($1)
+		`),
+	); err != nil {
+		return nil, err
+	}
+
+	if _, err := conn.Prepare(
+		stmtRelationsFromRelations,
+		strings.TrimSpace(`
+			SELECT DISTINCT rm.member_id AS id
+			FROM current_relation_members rm
+			WHERE rm.member_type = 'Relation' AND 
+				  rm.relation_id = ANY($1)
 		`),
 	); err != nil {
 		return nil, err

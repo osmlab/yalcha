@@ -131,34 +131,24 @@ func (o *OsmDB) GetWayByVersion(id, version int64) (*osm.Way, error) {
 	return way, nil
 }
 
-// GetWayFull selects way with internal nodes from database by id
-func (o *OsmDB) GetWayFull(id int64) (*osm.OSM, error) {
-	query := fmt.Sprintf(`
-	WITH way AS (
-		SELECT * FROM get_way_by_id(%v)
-	), node_ids AS (
-		SELECT ARRAY_AGG(ref) from (
-			SELECT UNNEST(nodes) AS ref FROM way
-		) AS r
-	), nodes AS (
-		SELECT * FROM get_node_by_id(
-			VARIADIC (SELECT * FROM node_ids)
-		)
-	), ways_array AS (
-		SELECT array_to_json(array_agg(w)) AS ways FROM way w
-	), nodes_array AS (
-		SELECT array_to_json(array_agg(n)) AS nodes FROM nodes n
-	)
-	SELECT COALESCE(w.ways, '[]'), COALESCE(n.nodes, '[]')
-	FROM ways_array w, nodes_array n
-	`, id)
+// GetWaysFromRelations selects ways id from database by id and relations ids
+func (o *OsmDB) GetWaysFromRelations(ids []int64) ([]int64, error) {
+	rows, err := o.pool.Query(stmtWaysFromRelations, ids)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
 
-	osm := osm.New()
-	err := o.db.QueryRow(query).Scan(
-		&osm.Ways,
-		&osm.Nodes,
-	)
-	return osm, err
+	wayIDs := []int64{}
+	for rows.Next() {
+		var wayID int64
+		if err := rows.Scan(&wayID); err != nil {
+			return nil, err
+		}
+		wayIDs = append(wayIDs, wayID)
+	}
+
+	return wayIDs, nil
 }
 
 // GetWayHistory selects way history from database by id

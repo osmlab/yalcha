@@ -83,14 +83,71 @@ func (s *Server) GetRelationFull(c echo.Context) error {
 		s.SetEmptyResultHeaders(c, http.StatusNotFound)
 		return err
 	}
-	osm, err := s.db.GetRelationFull(id)
-	if err != nil || len(osm.Objects()) == 0 {
+
+	relationID, err := s.db.GetRelationID(id)
+	if err != nil {
 		s.SetEmptyResultHeaders(c, http.StatusNotFound)
 		return err
 	}
+	isVisible, err := s.db.IsRelationVisible(relationID)
+	if err != nil {
+		s.SetEmptyResultHeaders(c, http.StatusInternalServerError)
+		return err
+	}
+	if !isVisible {
+		s.SetEmptyResultHeaders(c, http.StatusGone)
+		return nil
+	}
+
+	ids := []int64{relationID}
+	nodesFromRelations, err := s.db.GetNodesFromRelations(ids)
+	if err != nil {
+		s.SetEmptyResultHeaders(c, http.StatusInternalServerError)
+		return err
+	}
+	waysFromRelations, err := s.db.GetWaysFromRelations(ids)
+	if err != nil {
+		s.SetEmptyResultHeaders(c, http.StatusInternalServerError)
+		return err
+	}
+	nodesFromWays, err := s.db.GetNodesFromWays(waysFromRelations)
+	if err != nil {
+		s.SetEmptyResultHeaders(c, http.StatusInternalServerError)
+		return err
+	}
+	relsFromRels, err := s.db.GetRelationsFromRelations(ids)
+	if err != nil {
+		s.SetEmptyResultHeaders(c, http.StatusInternalServerError)
+		return err
+	}
+
+	nodeIDs := append(nodesFromRelations, nodesFromWays...)
+	wayIDs := waysFromRelations
+	relIDs := append(ids, relsFromRels...)
+
+	nodes, err := s.db.GetNodes(nodeIDs)
+	if err != nil {
+		s.SetEmptyResultHeaders(c, http.StatusInternalServerError)
+		return err
+	}
+	ways, err := s.db.GetWays(wayIDs)
+	if err != nil {
+		s.SetEmptyResultHeaders(c, http.StatusInternalServerError)
+		return err
+	}
+	relations, err := s.db.GetRelations(relIDs)
+	if err != nil {
+		s.SetEmptyResultHeaders(c, http.StatusInternalServerError)
+		return err
+	}
+
+	resp := osm.New()
+	resp.Nodes = nodes
+	resp.Ways = ways
+	resp.Relations = relations
 
 	s.SetHeaders(c)
-	return xml.NewEncoder(c.Response()).Encode(osm)
+	return xml.NewEncoder(c.Response()).Encode(resp)
 }
 
 // GetRelationHistory returns relation history by id

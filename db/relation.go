@@ -87,6 +87,26 @@ func (o *OsmDB) GetHistoricRelations(ids [][2]int64) (osm.Relations, error) {
 	return relations, err
 }
 
+// GetRelationsFromRelations selects relations id from database by id and relations ids
+func (o *OsmDB) GetRelationsFromRelations(ids []int64) ([]int64, error) {
+	rows, err := o.pool.Query(stmtRelationsFromRelations, ids)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	relIDs := []int64{}
+	for rows.Next() {
+		var relID int64
+		if err := rows.Scan(&relID); err != nil {
+			return nil, err
+		}
+		relIDs = append(relIDs, relID)
+	}
+
+	return relIDs, nil
+}
+
 // GetRelationByVersion selects relation from database by id and version
 func (o *OsmDB) GetRelationByVersion(id, version int64) (*osm.Relation, error) {
 	relationQuery := fmt.Sprintf(`
@@ -129,57 +149,6 @@ func (o *OsmDB) GetRelationByVersion(id, version int64) (*osm.Relation, error) {
 	}
 
 	return relation, nil
-}
-
-// GetRelationFull is used to return relation with all internal members
-func (o *OsmDB) GetRelationFull(id int64) (*osm.OSM, error) {
-	query := fmt.Sprintf(`
-	WITH relation AS (
-		SELECT * FROM get_relation_by_id(%v)
-	), relation_members AS (
-		SELECT unnest(members) AS members FROM relation
-	), relation_ids AS (
-		SELECT array_agg((members::osm_member).ref) FROM relation_members where (members::osm_member).type = 'relation'
-	), relations AS (
-		SELECT * FROM get_relation_by_id(
-			variadic (SELECT * FROM relation_ids)
-		)
-		union
-		SELECT * FROM relation
-	), way_ids AS (
-		SELECT array_agg((members::osm_member).ref) FROM relation_members where (members::osm_member).type = 'way'
-	), ways AS (
-		SELECT * FROM get_way_by_id(
-			variadic (SELECT * FROM way_ids)
-		)
-	), node_ids AS (
-		SELECT array_agg(ref) FROM (
-			SELECT (members::osm_member).ref FROM relation_members where (members::osm_member).type = 'node'
-			union
-			SELECT unnest(nodes) AS ref FROM ways
-		) AS r
-	), nodes AS (
-		SELECT * FROM get_node_by_id(
-			variadic (SELECT * FROM node_ids)
-		)
-	), relations_array AS (
-		SELECT array_to_json(array_agg(r)) AS relations FROM relations r
-	), ways_array AS (
-		SELECT array_to_json(array_agg(w)) AS ways FROM ways w
-	), nodes_array AS (
-		SELECT array_to_json(array_agg(n)) AS nodes FROM nodes n
-	)
-	SELECT COALESCE(r.relations, '[]'), COALESCE(w.ways, '[]'), COALESCE(n.nodes, '[]')
-	FROM relations_array r, ways_array w, nodes_array n
-	`, id)
-
-	osm := osm.New()
-	err := o.db.QueryRow(query).Scan(
-		&osm.Relations,
-		&osm.Ways,
-		&osm.Nodes,
-	)
-	return osm, err
 }
 
 // GetRelationHistory selects relation history from databASe by id
