@@ -31,14 +31,16 @@ func (s *Server) GetNode(c echo.Context) error {
 		s.SetEmptyResultHeaders(c, http.StatusGone)
 		return nil
 	}
-	node, err := s.db.GetNode(nodeID)
+
+	ids := []int64{nodeID}
+	nodes, err := s.db.GetNodes(ids)
 	if err != nil {
 		s.SetEmptyResultHeaders(c, http.StatusInternalServerError)
 		return err
 	}
 
 	resp := osm.New()
-	resp.Nodes = append(resp.Nodes, node)
+	resp.Nodes = nodes
 
 	s.SetHeaders(c)
 	return xml.NewEncoder(c.Response()).Encode(resp)
@@ -122,8 +124,8 @@ func (s *Server) GetNodes(c echo.Context) error {
 		return nil
 	}
 
-	cIDs := make([]int64, 0)
-	nIDsVs := make([][2]int64, 0)
+	nodeIDs := make([]int64, 0)
+	historicNodeIDs := make([][2]int64, 0)
 	for i := range nodeIDsString {
 		idv := strings.Split(nodeIDsString[i], "v")
 		id, err := strconv.ParseInt(idv[0], 10, 64)
@@ -132,7 +134,7 @@ func (s *Server) GetNodes(c echo.Context) error {
 			return nil
 		}
 		if len(idv) == 1 {
-			cIDs = appendIfUnique(cIDs, id)
+			nodeIDs = appendIfUnique(nodeIDs, id)
 			continue
 		}
 		v, err := strconv.ParseInt(idv[1], 10, 64)
@@ -140,16 +142,24 @@ func (s *Server) GetNodes(c echo.Context) error {
 			s.SetEmptyResultHeaders(c, http.StatusBadRequest)
 			return nil
 		}
-		nIDsVs = appendVersionIfUnique(nIDsVs, [2]int64{id, v})
+		historicNodeIDs = appendVersionIfUnique(historicNodeIDs, [2]int64{id, v})
 	}
 
-	nodes, err := s.db.GetNodes(cIDs, nIDsVs)
+	currentNodes, err := s.db.GetNodes(nodeIDs)
 	if err != nil {
 		s.SetEmptyResultHeaders(c, http.StatusNotFound)
 		return err
 	}
 
-	if len(nodes) != len(cIDs)+len(nIDsVs) {
+	historicNodes, err := s.db.GetHistoricalNodes(historicNodeIDs)
+	if err != nil {
+		s.SetEmptyResultHeaders(c, http.StatusNotFound)
+		return err
+	}
+
+	nodes := append(currentNodes, historicNodes...)
+
+	if len(nodes) != len(nodeIDs)+len(historicNodeIDs) {
 		s.SetEmptyResultHeaders(c, http.StatusNotFound)
 		return nil
 	}

@@ -31,14 +31,16 @@ func (s *Server) GetWay(c echo.Context) error {
 		s.SetEmptyResultHeaders(c, http.StatusGone)
 		return nil
 	}
-	way, err := s.db.GetWay(wayID)
+
+	ids := []int64{wayID}
+	ways, err := s.db.GetWays(ids)
 	if err != nil {
 		s.SetEmptyResultHeaders(c, http.StatusInternalServerError)
 		return err
 	}
 
 	resp := osm.New()
-	resp.Ways = append(resp.Ways, way)
+	resp.Ways = ways
 
 	s.SetHeaders(c)
 	return xml.NewEncoder(c.Response()).Encode(resp)
@@ -81,19 +83,50 @@ func (s *Server) GetWayFull(c echo.Context) error {
 		s.SetEmptyResultHeaders(c, http.StatusNotFound)
 		return err
 	}
-	osm, err := s.db.GetWayFull(id)
-	if err != nil || len(osm.Objects()) == 0 {
+
+	wayID, err := s.db.GetWayID(id)
+	if err != nil {
 		s.SetEmptyResultHeaders(c, http.StatusNotFound)
 		return err
 	}
-
-	if !osm.Ways[0].Visible {
+	isVisible, err := s.db.IsWayVisible(wayID)
+	if err != nil {
+		s.SetEmptyResultHeaders(c, http.StatusInternalServerError)
+		return err
+	}
+	if !isVisible {
 		s.SetEmptyResultHeaders(c, http.StatusGone)
 		return nil
 	}
 
+	ids := []int64{wayID}
+	ways, err := s.db.GetWays(ids)
+	if err != nil {
+		s.SetEmptyResultHeaders(c, http.StatusInternalServerError)
+		return err
+	}
+
+	wayIDs := []int64{}
+	for i := range ways {
+		wayIDs = append(wayIDs, ways[i].ID)
+	}
+	nodeIDs, err := s.db.GetNodesFromWays(wayIDs)
+	if err != nil {
+		s.SetEmptyResultHeaders(c, http.StatusInternalServerError)
+		return err
+	}
+	nodes, err := s.db.GetNodes(nodeIDs)
+	if err != nil {
+		s.SetEmptyResultHeaders(c, http.StatusInternalServerError)
+		return err
+	}
+
+	resp := osm.New()
+	resp.Nodes = nodes
+	resp.Ways = ways
+
 	s.SetHeaders(c)
-	return xml.NewEncoder(c.Response()).Encode(osm)
+	return xml.NewEncoder(c.Response()).Encode(resp)
 }
 
 // GetWayHistory returns way history by id
@@ -124,8 +157,8 @@ func (s *Server) GetWays(c echo.Context) error {
 		return nil
 	}
 
-	cIDs := make([]int64, 0)
-	nIDsVs := make([][2]int64, 0)
+	wayIDs := make([]int64, 0)
+	historicWayIDs := make([][2]int64, 0)
 	for i := range wayIDsString {
 		idv := strings.Split(wayIDsString[i], "v")
 		id, err := strconv.ParseInt(idv[0], 10, 64)
@@ -134,7 +167,7 @@ func (s *Server) GetWays(c echo.Context) error {
 			return nil
 		}
 		if len(idv) == 1 {
-			cIDs = appendIfUnique(cIDs, id)
+			wayIDs = appendIfUnique(wayIDs, id)
 			continue
 		}
 		v, err := strconv.ParseInt(idv[1], 10, 64)
@@ -142,16 +175,24 @@ func (s *Server) GetWays(c echo.Context) error {
 			s.SetEmptyResultHeaders(c, http.StatusBadRequest)
 			return nil
 		}
-		nIDsVs = appendVersionIfUnique(nIDsVs, [2]int64{id, v})
+		historicWayIDs = appendVersionIfUnique(historicWayIDs, [2]int64{id, v})
 	}
 
-	ways, err := s.db.GetWays(cIDs, nIDsVs)
+	currentWays, err := s.db.GetWays(wayIDs)
 	if err != nil {
 		s.SetEmptyResultHeaders(c, http.StatusNotFound)
 		return err
 	}
 
-	if len(ways) != len(cIDs)+len(nIDsVs) {
+	historicWays, err := s.db.GetHistoricWays(historicWayIDs)
+	if err != nil {
+		s.SetEmptyResultHeaders(c, http.StatusNotFound)
+		return err
+	}
+
+	ways := append(currentWays, historicWays...)
+
+	if len(ways) != len(wayIDs)+len(historicWayIDs) {
 		s.SetEmptyResultHeaders(c, http.StatusNotFound)
 		return nil
 	}

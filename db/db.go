@@ -30,11 +30,12 @@ const (
 	stmtExtractHistoricNodes      = "extract_historic_nodes"
 	stmtExtractHistoricWays       = "extract_historic_ways"
 	stmtExtractHistoricRelations  = "extract_historic_relations"
+	stmtNodesFromWays             = "nodes_from_ways"
 )
 
 // OsmDB contains logic to deal with Openstreetmap database
 type OsmDB struct {
-	pgdb *pgx.Conn
+	pool *pgx.ConnPool
 	db   *sqlx.DB
 
 	statements map[string]*pgx.PreparedStatement
@@ -42,18 +43,20 @@ type OsmDB struct {
 
 // Init returns new database connection
 func Init(config config.DB) (*OsmDB, error) {
-	pgdb, err := pgx.Connect(pgx.ConnConfig{
-		Host:     config.Host,
-		Port:     config.Port,
-		User:     config.User,
-		Password: config.Password,
-		Database: config.DBName,
+	pool, err := pgx.NewConnPool(pgx.ConnPoolConfig{
+		ConnConfig: pgx.ConnConfig{
+			Host:     config.Host,
+			Port:     config.Port,
+			User:     config.User,
+			Password: config.Password,
+			Database: config.DBName,
+		},
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	sts, err := initStatements(pgdb)
+	sts, err := initStatements(pool)
 	if err != nil {
 		return nil, err
 	}
@@ -62,13 +65,13 @@ func Init(config config.DB) (*OsmDB, error) {
 		config.Host, config.Port, config.User, config.Password, config.DBName)
 	conn, err := sqlx.Open("postgres", dbinfo)
 	return &OsmDB{
-		pgdb:       pgdb,
+		pool:       pool,
 		db:         conn,
 		statements: sts,
 	}, err
 }
 
-func initStatements(conn *pgx.Conn) (map[string]*pgx.PreparedStatement, error) {
+func initStatements(conn *pgx.ConnPool) (map[string]*pgx.PreparedStatement, error) {
 	sts := make(map[string]*pgx.PreparedStatement)
 
 	if _, err := conn.Prepare(
@@ -509,6 +512,17 @@ func initStatements(conn *pgx.Conn) (map[string]*pgx.PreparedStatement, error) {
 			JOIN changesets c ON c.id = r.changeset_id
     		LEFT JOIN users u ON (u.id = c.user_id and u.data_public)
 			ORDER BY r.relation_id, r.version
+		`),
+	); err != nil {
+		return nil, err
+	}
+
+	if _, err := conn.Prepare(
+		stmtNodesFromWays,
+		strings.TrimSpace(`
+			SELECT DISTINCT wn.node_id AS id
+			FROM current_way_nodes wn
+			WHERE wn.way_id = ANY($1)
 		`),
 	); err != nil {
 		return nil, err

@@ -17,19 +17,30 @@ func (s *Server) GetRelation(c echo.Context) error {
 		s.SetEmptyResultHeaders(c, http.StatusNotFound)
 		return err
 	}
-	relation, err := s.db.GetRelation(id)
+	relationID, err := s.db.GetRelationID(id)
 	if err != nil {
 		s.SetEmptyResultHeaders(c, http.StatusNotFound)
 		return err
 	}
-
-	if !relation.Visible {
+	isVisible, err := s.db.IsRelationVisible(relationID)
+	if err != nil {
+		s.SetEmptyResultHeaders(c, http.StatusInternalServerError)
+		return err
+	}
+	if !isVisible {
 		s.SetEmptyResultHeaders(c, http.StatusGone)
 		return nil
 	}
 
+	ids := []int64{relationID}
+	relations, err := s.db.GetRelations(ids)
+	if err != nil {
+		s.SetEmptyResultHeaders(c, http.StatusInternalServerError)
+		return err
+	}
+
 	resp := osm.New()
-	resp.Relations = append(resp.Relations, relation)
+	resp.Relations = relations
 
 	s.SetHeaders(c)
 	return xml.NewEncoder(c.Response()).Encode(resp)
@@ -110,8 +121,8 @@ func (s *Server) GetRelations(c echo.Context) error {
 		return nil
 	}
 
-	cIDs := make([]int64, 0)
-	nIDsVs := make([][2]int64, 0)
+	relIDs := make([]int64, 0)
+	historicRelIDs := make([][2]int64, 0)
 	for i := range relationIDsString {
 		idv := strings.Split(relationIDsString[i], "v")
 		id, err := strconv.ParseInt(idv[0], 10, 64)
@@ -120,7 +131,7 @@ func (s *Server) GetRelations(c echo.Context) error {
 			return nil
 		}
 		if len(idv) == 1 {
-			cIDs = appendIfUnique(cIDs, id)
+			relIDs = appendIfUnique(relIDs, id)
 			continue
 		}
 		v, err := strconv.ParseInt(idv[1], 10, 64)
@@ -128,16 +139,24 @@ func (s *Server) GetRelations(c echo.Context) error {
 			s.SetEmptyResultHeaders(c, http.StatusBadRequest)
 			return nil
 		}
-		nIDsVs = appendVersionIfUnique(nIDsVs, [2]int64{id, v})
+		historicRelIDs = appendVersionIfUnique(historicRelIDs, [2]int64{id, v})
 	}
 
-	relations, err := s.db.GetRelations(cIDs, nIDsVs)
+	currentRelations, err := s.db.GetRelations(relIDs)
 	if err != nil {
 		s.SetEmptyResultHeaders(c, http.StatusNotFound)
 		return err
 	}
 
-	if len(relations) != len(cIDs)+len(nIDsVs) {
+	historicRelations, err := s.db.GetHistoricRelations(historicRelIDs)
+	if err != nil {
+		s.SetEmptyResultHeaders(c, http.StatusNotFound)
+		return err
+	}
+
+	relations := append(currentRelations, historicRelations...)
+
+	if len(relations) != len(relIDs)+len(historicRelIDs) {
 		s.SetEmptyResultHeaders(c, http.StatusNotFound)
 		return nil
 	}

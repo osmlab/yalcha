@@ -10,32 +10,81 @@ import (
 // GetRelationID selects relation id from database by id
 func (o *OsmDB) GetRelationID(id int64) (int64, error) {
 	var relationID int64
-	err := o.pgdb.QueryRow(stmtSelectRelations, []int64{id}).Scan(&relationID)
+	err := o.pool.QueryRow(stmtSelectRelations, []int64{id}).Scan(&relationID)
 	return relationID, err
 }
 
 // IsRelationVisible is used to check relation visibility
 func (o *OsmDB) IsRelationVisible(id int64) (bool, error) {
 	var result bool
-	err := o.pgdb.QueryRow(stmtVisibleRelation, id).Scan(&result)
+	err := o.pool.QueryRow(stmtVisibleRelation, id).Scan(&result)
 	return result, err
 }
 
-// GetRelation selects relation from database by id
-func (o *OsmDB) GetRelation(id int64) (*osm.Relation, error) {
-	relation := &osm.Relation{}
-	err := o.pgdb.QueryRow(stmtExtractRelations, []int64{id}).Scan(
-		&relation.ID,
-		&relation.Visible,
-		&relation.Timestamp,
-		&relation.ChangesetID,
-		&relation.User,
-		&relation.UserID,
-		&relation.Version,
-		&relation.Tags,
-		&relation.Members,
-	)
-	return relation, err
+// GetRelations selects relations from database by id
+func (o *OsmDB) GetRelations(ids []int64) (osm.Relations, error) {
+	rows, err := o.pool.Query(stmtExtractRelations, ids)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	relations := osm.Relations{}
+	for rows.Next() {
+		relation := &osm.Relation{}
+		if err := rows.Scan(
+			&relation.ID,
+			&relation.Visible,
+			&relation.Timestamp,
+			&relation.ChangesetID,
+			&relation.User,
+			&relation.UserID,
+			&relation.Version,
+			&relation.Tags,
+			&relation.Members,
+		); err != nil {
+			return nil, err
+		}
+		relations = append(relations, relation)
+	}
+
+	return relations, err
+}
+
+// GetHistoricRelations selects historical relations from database by id and version
+func (o *OsmDB) GetHistoricRelations(ids [][2]int64) (osm.Relations, error) {
+	relIDs, vers := []int64{}, []int64{}
+	for i := range ids {
+		relIDs = append(relIDs, ids[i][0])
+		vers = append(vers, ids[i][1])
+	}
+
+	rows, err := o.pool.Query(stmtExtractHistoricRelations, relIDs, vers)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	relations := osm.Relations{}
+	for rows.Next() {
+		relation := &osm.Relation{}
+		if err := rows.Scan(
+			&relation.ID,
+			&relation.Visible,
+			&relation.Timestamp,
+			&relation.ChangesetID,
+			&relation.User,
+			&relation.UserID,
+			&relation.Version,
+			&relation.Tags,
+			&relation.Members,
+		); err != nil {
+			return nil, err
+		}
+		relations = append(relations, relation)
+	}
+
+	return relations, err
 }
 
 // GetRelationByVersion selects relation from database by id and version
@@ -147,87 +196,6 @@ func (o *OsmDB) GetRelationHistory(id int64) (osm.Relations, error) {
 		COALESCE(to_json(tags), '[]') AS tags,
 		COALESCE(to_json(members), '[]') AS members
 	FROM get_relation_history_by_id(%v)`, id)
-
-	rows, err := o.db.Query(query)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var relations osm.Relations
-	for rows.Next() {
-		var user sql.NullString
-		var userID sql.NullInt64
-		relation := &osm.Relation{}
-		err := rows.Scan(
-			&relation.ID,
-			&relation.Visible,
-			&relation.Version,
-			&user,
-			&userID,
-			&relation.ChangesetID,
-			&relation.Timestamp,
-			&relation.Tags,
-			&relation.Members,
-		)
-		if err != nil {
-			return nil, err
-		}
-
-		if userID.Valid {
-			relation.UserID = &userID.Int64
-			if user.Valid {
-				relation.User = &user.String
-			}
-		}
-
-		relations = append(relations, relation)
-	}
-
-	return relations, nil
-}
-
-// GetRelations returns relations by ids
-func (o *OsmDB) GetRelations(ids []int64, idvs [][2]int64) (osm.Relations, error) {
-	if len(ids) == 0 &&
-		len(idvs) == 0 {
-		return nil, nil
-	}
-
-	query := ""
-	if len(ids) > 0 {
-		query = fmt.Sprintf(`
-		SELECT
-			id,
-			visible,
-			version,
-			"user",
-			uid,
-			changeset,
-			timestamp,
-			COALESCE(to_jsonb(tags), '[]') AS tags,
-			COALESCE(to_jsonb(members), '[]') AS members
-		FROM get_relation_by_id(%v)
-		`, arrayToString(ids))
-	}
-	if len(idvs) > 0 {
-		if len(query) > 0 {
-			query += "UNION"
-		}
-		query += fmt.Sprintf(`
-		SELECT
-			id,
-			visible,
-			version,
-			"user",
-			uid,
-			changeset,
-			timestamp,
-			COALESCE(to_jsonb(tags), '[]') AS tags,
-			COALESCE(to_jsonb(members), '[]') AS members
-		FROM get_relation_by_id_and_version(array[[%v]])
-		`, versionArrayToString(idvs))
-	}
 
 	rows, err := o.db.Query(query)
 	if err != nil {
