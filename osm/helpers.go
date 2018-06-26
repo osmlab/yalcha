@@ -16,7 +16,7 @@ type Tag struct {
 }
 
 // Tags is Tag array
-type Tags []Tag
+type Tags []*Tag
 
 // Scan - Implement the database/sql scanner interface
 func (ts *Tags) Scan(value interface{}) error {

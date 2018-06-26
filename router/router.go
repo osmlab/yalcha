@@ -3,8 +3,8 @@ package router
 import (
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
-	"github.com/osmlab/yalcha/config"
-	"github.com/osmlab/yalcha/server"
+	"github.com/osmlab/gomap/config"
+	"github.com/osmlab/gomap/server"
 )
 
 // Load returns api router

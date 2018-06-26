@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/labstack/echo"
-	"github.com/osmlab/yalcha/osm"
+	"github.com/osmlab/gomap/osm"
 )
 
 // GetRelation returns relation by id

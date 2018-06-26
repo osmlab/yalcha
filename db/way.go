@@ -4,51 +4,38 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/osmlab/yalcha/osm"
+	"github.com/osmlab/gomap/osm"
 )
+
+// GetWayID selects way id from database by id
+func (o *OsmDB) GetWayID(id int64) (int64, error) {
+	var wayID int64
+	err := o.pgdb.QueryRow(stmtSelectWays, []int64{id}).Scan(&wayID)
+	return wayID, err
+}
+
+// IsWayVisible is used to check way visibility
+func (o *OsmDB) IsWayVisible(id int64) (bool, error) {
+	var result bool
+	err := o.pgdb.QueryRow(stmtVisibleWay, id).Scan(&result)
+	return result, err
+}
 
 // GetWay selects way from database by id
 func (o *OsmDB) GetWay(id int64) (*osm.Way, error) {
-	wayQuery := fmt.Sprintf(`
-	SELECT
-		id,
-		visible,
-		version,
-		"user",
-		uid,
-		changeset,
-		timestamp,
-		COALESCE(to_json(nodes), '[]') AS nodes,
-		COALESCE(to_json(tags), '[]') AS tags
-	FROM get_way_by_id(%v)
-	`, id)
-
-	var user sql.NullString
-	var userID sql.NullInt64
 	way := &osm.Way{}
-	err := o.db.QueryRow(wayQuery).Scan(
+	err := o.pgdb.QueryRow(stmtExtractWays, []int64{id}).Scan(
 		&way.ID,
 		&way.Visible,
-		&way.Version,
-		&user,
-		&userID,
-		&way.ChangesetID,
 		&way.Timestamp,
-		&way.Nodes,
+		&way.ChangesetID,
+		&way.User,
+		&way.UserID,
+		&way.Version,
 		&way.Tags,
+		&way.Nodes,
 	)
-	if err != nil {
-		return nil, err
-	}
-
-	if userID.Valid {
-		way.UserID = &userID.Int64
-		if user.Valid {
-			way.User = &user.String
-		}
-	}
-
-	return way, nil
+	return way, err
 }
 
 // GetWayByVersion selects way from database by id and version

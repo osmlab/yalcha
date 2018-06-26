@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/labstack/echo"
-	"github.com/osmlab/yalcha/db"
+	"github.com/osmlab/gomap/db"
 )
 
 // Server contains Openstreetmap API handlers

@@ -3,10 +3,10 @@ package main
 import (
 	"log"
 
-	"github.com/osmlab/yalcha/config"
-	"github.com/osmlab/yalcha/db"
-	"github.com/osmlab/yalcha/router"
-	"github.com/osmlab/yalcha/server"
+	"github.com/osmlab/gomap/config"
+	"github.com/osmlab/gomap/db"
+	"github.com/osmlab/gomap/router"
+	"github.com/osmlab/gomap/server"
 )
 
 func main() {
@@ -14,7 +14,7 @@ func main() {
 		Port: "8090",
 		Database: config.DB{
 			Host:     "localhost",
-			Port:     "5432",
+			Port:     5432,
 			DBName:   "openstreetmap",
 			User:     "heorhi",
 			Password: "some_password",

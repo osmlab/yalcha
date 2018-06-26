@@ -4,52 +4,39 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/osmlab/yalcha/osm"
+	"github.com/osmlab/gomap/osm"
 )
+
+// GetNodeID selects node id from database by id
+func (o *OsmDB) GetNodeID(id int64) (int64, error) {
+	var nodeID int64
+	err := o.pgdb.QueryRow(stmtSelectNodes, []int64{id}).Scan(&nodeID)
+	return nodeID, err
+}
+
+// IsNodeVisible is used to check node visibility
+func (o *OsmDB) IsNodeVisible(id int64) (bool, error) {
+	var result bool
+	err := o.pgdb.QueryRow(stmtVisibleNode, id).Scan(&result)
+	return result, err
+}
 
 // GetNode selects node from database by id
 func (o *OsmDB) GetNode(id int64) (*osm.Node, error) {
-	nodeQuery := fmt.Sprintf(`
-SELECT
-	id,
-	visible,
-	version,
-	lat,
-	lon,
-	changeset,
-	"user",
-	uid,
-	timestamp,
-	COALESCE(to_json(tags), '[]') AS tags
-FROM get_node_by_id(%v)`, id)
-
-	var user sql.NullString
-	var userID sql.NullInt64
 	node := &osm.Node{}
-	err := o.db.QueryRow(nodeQuery).Scan(
+	err := o.pgdb.QueryRow(stmtExtractNodes, []int64{id}).Scan(
 		&node.ID,
-		&node.Visible,
-		&node.Version,
 		&node.Lat,
 		&node.Lon,
-		&node.ChangesetID,
-		&user,
-		&userID,
+		&node.Visible,
 		&node.Timestamp,
+		&node.ChangesetID,
+		&node.User,
+		&node.UserID,
+		&node.Version,
 		&node.Tags,
 	)
-	if err != nil {
-		return nil, err
-	}
-
-	if userID.Valid {
-		node.UserID = &userID.Int64
-		if user.Valid {
-			node.User = &user.String
-		}
-	}
-
-	return node, nil
+	return node, err
 }
 
 // GetNodeByVersion selects node from database by id and version

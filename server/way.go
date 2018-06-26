@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/labstack/echo"
-	"github.com/osmlab/yalcha/osm"
+	"github.com/osmlab/gomap/osm"
 )
 
 // GetWay returns way by id
@@ -17,15 +17,24 @@ func (s *Server) GetWay(c echo.Context) error {
 		s.SetEmptyResultHeaders(c, http.StatusNotFound)
 		return err
 	}
-	way, err := s.db.GetWay(id)
+	wayID, err := s.db.GetWayID(id)
 	if err != nil {
 		s.SetEmptyResultHeaders(c, http.StatusNotFound)
 		return err
 	}
-
-	if !way.Visible {
+	isVisible, err := s.db.IsWayVisible(wayID)
+	if err != nil {
+		s.SetEmptyResultHeaders(c, http.StatusInternalServerError)
+		return err
+	}
+	if !isVisible {
 		s.SetEmptyResultHeaders(c, http.StatusGone)
 		return nil
+	}
+	way, err := s.db.GetWay(wayID)
+	if err != nil {
+		s.SetEmptyResultHeaders(c, http.StatusInternalServerError)
+		return err
 	}
 
 	resp := osm.New()

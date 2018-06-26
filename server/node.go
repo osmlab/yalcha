@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/labstack/echo"
-	"github.com/osmlab/yalcha/osm"
+	"github.com/osmlab/gomap/osm"
 )
 
 // GetNode returns node by id
@@ -17,15 +17,24 @@ func (s *Server) GetNode(c echo.Context) error {
 		s.SetEmptyResultHeaders(c, http.StatusNotFound)
 		return err
 	}
-	node, err := s.db.GetNode(id)
+	nodeID, err := s.db.GetNodeID(id)
 	if err != nil {
 		s.SetEmptyResultHeaders(c, http.StatusNotFound)
 		return err
 	}
-
-	if !node.Visible {
+	isVisible, err := s.db.IsNodeVisible(nodeID)
+	if err != nil {
+		s.SetEmptyResultHeaders(c, http.StatusInternalServerError)
+		return err
+	}
+	if !isVisible {
 		s.SetEmptyResultHeaders(c, http.StatusGone)
 		return nil
+	}
+	node, err := s.db.GetNode(nodeID)
+	if err != nil {
+		s.SetEmptyResultHeaders(c, http.StatusInternalServerError)
+		return err
 	}
 
 	resp := osm.New()
