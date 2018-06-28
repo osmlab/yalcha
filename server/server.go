@@ -5,12 +5,12 @@ import (
 	"strings"
 
 	"github.com/labstack/echo"
-	"github.com/osmlab/gomap/db"
+	"github.com/osmlab/gomap/gomap"
 )
 
 // Server contains Openstreetmap API handlers
 type Server struct {
-	db *db.OsmDB
+	g *gomap.Gomap
 }
 
 // SetHeaders is used to set default headers for OK response
@@ -29,6 +29,6 @@ func (s *Server) SetEmptyResultHeaders(c echo.Context, status int) {
 }
 
 // New returns new Server
-func New(db *db.OsmDB) *Server {
-	return &Server{db: db}
+func New(g *gomap.Gomap) *Server {
+	return &Server{g: g}
 }

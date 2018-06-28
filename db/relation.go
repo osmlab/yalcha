@@ -1,17 +1,27 @@
 package db
 
 import (
-	"database/sql"
-	"fmt"
-
 	"github.com/osmlab/gomap/osm"
 )
 
-// GetRelationID selects relation id from database by id
-func (o *OsmDB) GetRelationID(id int64) (int64, error) {
-	var relationID int64
-	err := o.pool.QueryRow(stmtSelectRelations, []int64{id}).Scan(&relationID)
-	return relationID, err
+// SelectRelations selects relations ids
+func (o *OsmDB) SelectRelations(ids ...int64) ([]int64, error) {
+	var result []int64
+	rows, err := o.pool.Query(stmtSelectRelations, ids)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var id int64
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		result = append(result, id)
+	}
+
+	return result, nil
 }
 
 // IsRelationVisible is used to check relation visibility
@@ -21,8 +31,8 @@ func (o *OsmDB) IsRelationVisible(id int64) (bool, error) {
 	return result, err
 }
 
-// GetRelations selects relations from database by id
-func (o *OsmDB) GetRelations(ids []int64) (osm.Relations, error) {
+// ExtractRelations extract relations by id
+func (o *OsmDB) ExtractRelations(ids []int64) (osm.Relations, error) {
 	rows, err := o.pool.Query(stmtExtractRelations, ids)
 	if err != nil {
 		return nil, err
@@ -51,8 +61,8 @@ func (o *OsmDB) GetRelations(ids []int64) (osm.Relations, error) {
 	return relations, err
 }
 
-// GetHistoricRelations selects historical relations from database by id and version
-func (o *OsmDB) GetHistoricRelations(ids [][2]int64) (osm.Relations, error) {
+// ExtractHistoricalRelations extarct historical relations from database by id and version
+func (o *OsmDB) ExtractHistoricalRelations(ids [][2]int64) (osm.Relations, error) {
 	relIDs, vers := []int64{}, []int64{}
 	for i := range ids {
 		relIDs = append(relIDs, ids[i][0])
@@ -87,8 +97,8 @@ func (o *OsmDB) GetHistoricRelations(ids [][2]int64) (osm.Relations, error) {
 	return relations, err
 }
 
-// GetRelationsFromRelations selects relations id from database by id and relations ids
-func (o *OsmDB) GetRelationsFromRelations(ids []int64) ([]int64, error) {
+// SelectRelationsFromRelations selects relations id from database by id and relations ids
+func (o *OsmDB) SelectRelationsFromRelations(ids []int64) ([]int64, error) {
 	rows, err := o.pool.Query(stmtRelationsFromRelations, ids)
 	if err != nil {
 		return nil, err
@@ -105,102 +115,4 @@ func (o *OsmDB) GetRelationsFromRelations(ids []int64) ([]int64, error) {
 	}
 
 	return relIDs, nil
-}
-
-// GetRelationByVersion selects relation from database by id and version
-func (o *OsmDB) GetRelationByVersion(id, version int64) (*osm.Relation, error) {
-	relationQuery := fmt.Sprintf(`
-	SELECT
-		id,
-		visible,
-		version,
-		"user",
-		uid,
-		changeset,
-		timestamp,
-		COALESCE(to_json(tags), '[]') AS tags,
-		COALESCE(to_json(members), '[]') AS members
-	FROM get_relation_by_id_and_version(array[[%v, %v]])
-	`, id, version)
-
-	var user sql.NullString
-	var userID sql.NullInt64
-	relation := &osm.Relation{}
-	err := o.db.QueryRow(relationQuery).Scan(
-		&relation.ID,
-		&relation.Visible,
-		&relation.Version,
-		&user,
-		&userID,
-		&relation.ChangesetID,
-		&relation.Timestamp,
-		&relation.Tags,
-		&relation.Members,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	if userID.Valid {
-		relation.UserID = &userID.Int64
-		if user.Valid {
-			relation.User = &user.String
-		}
-	}
-
-	return relation, nil
-}
-
-// GetRelationHistory selects relation history from databASe by id
-func (o *OsmDB) GetRelationHistory(id int64) (osm.Relations, error) {
-	query := fmt.Sprintf(`
-	SELECT
-		id,
-		visible,
-		version,
-		"user",
-		uid,
-		changeset,
-		timestamp,
-		COALESCE(to_json(tags), '[]') AS tags,
-		COALESCE(to_json(members), '[]') AS members
-	FROM get_relation_history_by_id(%v)`, id)
-
-	rows, err := o.db.Query(query)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var relations osm.Relations
-	for rows.Next() {
-		var user sql.NullString
-		var userID sql.NullInt64
-		relation := &osm.Relation{}
-		err := rows.Scan(
-			&relation.ID,
-			&relation.Visible,
-			&relation.Version,
-			&user,
-			&userID,
-			&relation.ChangesetID,
-			&relation.Timestamp,
-			&relation.Tags,
-			&relation.Members,
-		)
-		if err != nil {
-			return nil, err
-		}
-
-		if userID.Valid {
-			relation.UserID = &userID.Int64
-			if user.Valid {
-				relation.User = &user.String
-			}
-		}
-
-		relations = append(relations, relation)
-	}
-
-	return relations, nil
 }

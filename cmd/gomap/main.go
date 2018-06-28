@@ -3,6 +3,8 @@ package main
 import (
 	"log"
 
+	"github.com/osmlab/gomap/gomap"
+
 	"github.com/osmlab/gomap/config"
 	"github.com/osmlab/gomap/db"
 	"github.com/osmlab/gomap/router"
@@ -24,7 +26,8 @@ func main() {
 	if err != nil {
 		log.Fatalf("DB started with error: %v", err)
 	}
-	server := server.New(db)
+	g := gomap.New(db)
+	server := server.New(g)
 	router := router.Load(config, server)
 	err = router.Start(":" + config.Port)
 	log.Fatalf("Server started with error: %v", err)

@@ -1,17 +1,27 @@
 package db
 
 import (
-	"database/sql"
-	"fmt"
-
 	"github.com/osmlab/gomap/osm"
 )
 
-// GetWayID selects way id from database by id
-func (o *OsmDB) GetWayID(id int64) (int64, error) {
-	var wayID int64
-	err := o.pool.QueryRow(stmtSelectWays, []int64{id}).Scan(&wayID)
-	return wayID, err
+// SelectWays selects ways id
+func (o *OsmDB) SelectWays(ids ...int64) ([]int64, error) {
+	var result []int64
+	rows, err := o.pool.Query(stmtSelectWays, ids)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var id int64
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		result = append(result, id)
+	}
+
+	return result, nil
 }
 
 // IsWayVisible is used to check way visibility
@@ -21,8 +31,8 @@ func (o *OsmDB) IsWayVisible(id int64) (bool, error) {
 	return result, err
 }
 
-// GetWays selects ways from database by id
-func (o *OsmDB) GetWays(ids []int64) (osm.Ways, error) {
+// ExtractWays selects ways from database by id
+func (o *OsmDB) ExtractWays(ids []int64) (osm.Ways, error) {
 	rows, err := o.pool.Query(stmtExtractWays, ids)
 	if err != nil {
 		return nil, err
@@ -51,8 +61,8 @@ func (o *OsmDB) GetWays(ids []int64) (osm.Ways, error) {
 	return ways, nil
 }
 
-// GetHistoricWays selects historical ways from database by id and version
-func (o *OsmDB) GetHistoricWays(ids [][2]int64) (osm.Ways, error) {
+// ExtractHistoricalWays returns historical ways by id and version
+func (o *OsmDB) ExtractHistoricalWays(ids [][2]int64) (osm.Ways, error) {
 	wayIDs, vers := []int64{}, []int64{}
 	for i := range ids {
 		wayIDs = append(wayIDs, ids[i][0])
@@ -87,52 +97,8 @@ func (o *OsmDB) GetHistoricWays(ids [][2]int64) (osm.Ways, error) {
 	return ways, nil
 }
 
-// GetWayByVersion selects way from database by id and version
-func (o *OsmDB) GetWayByVersion(id, version int64) (*osm.Way, error) {
-	wayQuery := fmt.Sprintf(`
-	SELECT
-		id,
-		visible,
-		version,
-		"user",
-		uid,
-		changeset,
-		timestamp,
-		COALESCE(to_json(nodes), '[]') AS nodes,
-		COALESCE(to_json(tags), '[]') AS tags
-	FROM get_way_by_id_and_version(array[[%v, %v]])
-	`, id, version)
-
-	var user sql.NullString
-	var userID sql.NullInt64
-	way := &osm.Way{}
-	err := o.db.QueryRow(wayQuery).Scan(
-		&way.ID,
-		&way.Visible,
-		&way.Version,
-		&user,
-		&userID,
-		&way.ChangesetID,
-		&way.Timestamp,
-		&way.Nodes,
-		&way.Tags,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	if userID.Valid {
-		way.UserID = &userID.Int64
-		if user.Valid {
-			way.User = &user.String
-		}
-	}
-
-	return way, nil
-}
-
-// GetWaysFromRelations selects ways id from database by id and relations ids
-func (o *OsmDB) GetWaysFromRelations(ids []int64) ([]int64, error) {
+// SelectWaysFromRelations selects ways id from database by id and relations ids
+func (o *OsmDB) SelectWaysFromRelations(ids []int64) ([]int64, error) {
 	rows, err := o.pool.Query(stmtWaysFromRelations, ids)
 	if err != nil {
 		return nil, err
@@ -149,59 +115,4 @@ func (o *OsmDB) GetWaysFromRelations(ids []int64) ([]int64, error) {
 	}
 
 	return wayIDs, nil
-}
-
-// GetWayHistory selects way history from database by id
-func (o *OsmDB) GetWayHistory(id int64) (osm.Ways, error) {
-	query := fmt.Sprintf(`
-	SELECT
-		id,
-		visible,
-		version,
-		"user",
-		uid,
-		changeset,
-		timestamp,
-		COALESCE(to_json(nodes), '[]') AS nodes,
-		COALESCE(to_json(tags), '[]') AS tags
-	FROM get_way_history_by_id(%v)
-	`, id)
-
-	rows, err := o.db.Query(query)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var ways osm.Ways
-	for rows.Next() {
-		var user sql.NullString
-		var userID sql.NullInt64
-		way := &osm.Way{}
-		err := rows.Scan(
-			&way.ID,
-			&way.Visible,
-			&way.Version,
-			&user,
-			&userID,
-			&way.ChangesetID,
-			&way.Timestamp,
-			&way.Nodes,
-			&way.Tags,
-		)
-		if err != nil {
-			return nil, err
-		}
-
-		if userID.Valid {
-			way.UserID = &userID.Int64
-			if user.Valid {
-				way.User = &user.String
-			}
-		}
-
-		ways = append(ways, way)
-	}
-
-	return ways, nil
 }
