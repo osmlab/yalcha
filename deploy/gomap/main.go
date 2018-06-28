@@ -6,6 +6,7 @@ import (
 
 	"github.com/osmlab/gomap/config"
 	"github.com/osmlab/gomap/db"
+	"github.com/osmlab/gomap/gomap"
 	"github.com/osmlab/gomap/router"
 	"github.com/osmlab/gomap/server"
 )
@@ -16,7 +17,7 @@ func init() {
 	var err error
 	config := config.DB{
 		Host:     "gis.cesfozorknmw.us-west-2.rds.amazonaws.com",
-		Port:     "5432",
+		Port:     5432,
 		DBName:   "gis",
 		User:     "hesidoryn",
 		Password: "hesidoryn",
@@ -31,7 +32,8 @@ func main() {
 	config := &config.Config{
 		Port: os.Getenv("PORT"),
 	}
-	server := server.New(database)
+	g := gomap.New(database)
+	server := server.New(g)
 	router := router.Load(config, server)
 	err := router.Start(":" + config.Port)
 	log.Fatalf("Server started with error: %v", err)
