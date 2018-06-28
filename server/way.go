@@ -89,3 +89,30 @@ func (s *Server) GetWayFull(c echo.Context) error {
 	s.SetHeaders(c)
 	return xml.NewEncoder(c.Response()).Encode(resp)
 }
+
+// GetWayByVersion returns way by id and version
+func (s *Server) GetWayByVersion(c echo.Context) error {
+	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		s.SetEmptyResultHeaders(c, http.StatusNotFound)
+		return err
+	}
+	version, err := strconv.ParseInt(c.Param("version"), 10, 64)
+	if err != nil {
+		s.SetEmptyResultHeaders(c, http.StatusNotFound)
+		return err
+	}
+
+	resp, err := s.g.WayVersionHandler(id, version)
+	if err == gomap.ErrElementNotFound {
+		s.SetEmptyResultHeaders(c, http.StatusNotFound)
+		return err
+	}
+	if err != nil {
+		s.SetEmptyResultHeaders(c, http.StatusInternalServerError)
+		return err
+	}
+
+	s.SetHeaders(c)
+	return xml.NewEncoder(c.Response()).Encode(resp)
+}
