@@ -24,6 +24,7 @@ const (
 	stmtSelectHistoricalNodes     = "select_historical_nodes"
 	stmtSelectHistoricalWays      = "select_historical_ways"
 	stmtSelectHistoricalRelations = "select_historical_relations"
+	stmtSelectWaysFromNodes       = "select_ways_from_nodes"
 	stmtExtractNodes              = "extract_nodes"
 	stmtExtractWays               = "extract_ways"
 	stmtExtractRelations          = "extract_relations"
@@ -240,6 +241,17 @@ func initStatements(conn *pgx.ConnPool) (map[string]*pgx.PreparedStatement, erro
 			INNER JOIN wanted x ON r.relation_id = x.id AND
 					   r.version = x.version
 			WHERE (r.redaction_id IS NULL OR $3 = TRUE)
+		`),
+	); err != nil {
+		return nil, err
+	}
+
+	if _, err := conn.Prepare(
+		stmtSelectWaysFromNodes,
+		strings.TrimSpace(`
+			SELECT DISTINCT wn.way_id AS id
+			FROM current_way_nodes wn
+			WHERE wn.node_id = ANY($1)
 		`),
 	); err != nil {
 		return nil, err

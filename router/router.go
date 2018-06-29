@@ -24,8 +24,8 @@ func Load(config *config.Config, s *server.Server) *echo.Echo {
 	node06.GET("/:id/:version", s.GetNodeByVersion)
 	node06.HEAD("/:id/history", s.GetNodeHistory)
 	node06.GET("/:id/history", s.GetNodeHistory)
-	// node06.HEAD("/:id/ways", s.GetWaysForNode)
-	// node06.GET("/:id/ways", s.GetWaysForNode)
+	node06.HEAD("/:id/ways", s.GetWaysByNode)
+	node06.GET("/:id/ways", s.GetWaysByNode)
 
 	nodes06 := api06.Group("/nodes")
 	nodes06.HEAD("", s.GetNodes)
