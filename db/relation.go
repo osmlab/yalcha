@@ -24,6 +24,26 @@ func (o *OsmDB) SelectRelations(ids ...int64) ([]int64, error) {
 	return result, nil
 }
 
+// SelectRelationsHistory selects relations ids
+func (o *OsmDB) SelectRelationsHistory(ids ...int64) ([][2]int64, error) {
+	var result [][2]int64
+	rows, err := o.pool.Query(stmtSelectRelationsHistory, ids)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var id [2]int64
+		if err := rows.Scan(&id[0], &id[1]); err != nil {
+			return nil, err
+		}
+		result = append(result, id)
+	}
+
+	return result, nil
+}
+
 // IsRelationVisible is used to check relation visibility
 func (o *OsmDB) IsRelationVisible(id int64) (bool, error) {
 	var result bool

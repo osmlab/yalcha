@@ -152,7 +152,7 @@ func initStatements(conn *pgx.ConnPool) (map[string]*pgx.PreparedStatement, erro
 			FROM nodes
 			WHERE 
 				node_id = ANY($1) AND
-				(redaction_id IS NULL OR $2 = TRUE)
+				(redaction_id IS NULL)
 		`),
 	); err != nil {
 		return nil, err
@@ -167,7 +167,7 @@ func initStatements(conn *pgx.ConnPool) (map[string]*pgx.PreparedStatement, erro
 			FROM ways
 			WHERE 
 				way_id = ANY($1) AND
-				(redaction_id IS NULL OR $2 = TRUE)
+				(redaction_id IS NULL)
 		`),
 	); err != nil {
 		return nil, err
@@ -182,7 +182,7 @@ func initStatements(conn *pgx.ConnPool) (map[string]*pgx.PreparedStatement, erro
 			FROM relations
 			WHERE 
 				relation_id = ANY($1) AND
-				(redaction_id IS NULL OR $2 = TRUE)
+				(redaction_id IS NULL)
 		`),
 	); err != nil {
 		return nil, err

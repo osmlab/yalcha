@@ -13,7 +13,7 @@ const (
 	Attribution = "http://www.openstreetmap.org/copyright"
 	License     = "http://opendatacommons.org/licenses/odbl/1-0/"
 	Version     = 0.6
-	Generator   = "Yalcha"
+	Generator   = "Gomap"
 )
 
 // OSM represents the core osm data

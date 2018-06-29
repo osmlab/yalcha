@@ -116,3 +116,25 @@ func (s *Server) GetRelationByVersion(c echo.Context) error {
 	s.SetHeaders(c)
 	return xml.NewEncoder(c.Response()).Encode(resp)
 }
+
+// GetRelationHistory returns relation history by id
+func (s *Server) GetRelationHistory(c echo.Context) error {
+	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		s.SetEmptyResultHeaders(c, http.StatusNotFound)
+		return err
+	}
+
+	resp, err := s.g.RelationHistoryHandler(id)
+	if err == gomap.ErrElementNotFound {
+		s.SetEmptyResultHeaders(c, http.StatusNotFound)
+		return err
+	}
+	if err != nil {
+		s.SetEmptyResultHeaders(c, http.StatusInternalServerError)
+		return err
+	}
+
+	s.SetHeaders(c)
+	return xml.NewEncoder(c.Response()).Encode(resp)
+}
