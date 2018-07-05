@@ -13,14 +13,15 @@ import (
 
 // GetMap returns amp elements
 func (s *Server) GetMap(c echo.Context) error {
-	bboxRaw := strings.Split(c.Param("bbox"), ",")
-	if len(bboxRaw) != 3 {
-		return errors.New("malo argumentov")
+	bboxRaw := strings.Split(c.QueryParam("bbox"), ",")
+	if len(bboxRaw) != 4 {
+		return errors.New("few arguments")
 	}
 
-	bbox := []float64{}
+	bbox := []int64{}
 	for i := range bboxRaw {
-		arg, err := strconv.ParseFloat(bboxRaw[i], 64)
+		bboxRaw[i] += "0000000000"
+		arg, err := strconv.ParseInt(strings.Replace(bboxRaw[i], ".", "", -1)[:8], 10, 64)
 		if err != nil {
 			return err
 		}

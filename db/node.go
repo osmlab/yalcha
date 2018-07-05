@@ -162,7 +162,7 @@ func (o *OsmDB) SelectNodesFromRelations(ids []int64) ([]int64, error) {
 }
 
 // SelectNodesFromBbox selects nodes id from database by coordinates
-func (o *OsmDB) SelectNodesFromBbox(bbox []float64) ([]int64, error) {
+func (o *OsmDB) SelectNodesFromBbox(bbox []int64) ([]int64, error) {
 	rows, err := o.pool.Query(stmtSelectNodesFromBbox, bbox[0], bbox[1], bbox[2], bbox[3], maxNodes+1)
 	if err != nil {
 		return nil, err

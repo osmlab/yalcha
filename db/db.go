@@ -267,7 +267,8 @@ func initStatements(conn *pgx.ConnPool) (map[string]*pgx.PreparedStatement, erro
 			SELECT id
 			FROM current_nodes
 			WHERE latitude BETWEEN $1 AND $2 AND 
-				  longitude BETWEEN $3 AND $4 AND visible = true
+				  longitude BETWEEN $3 AND $4 AND 
+				  visible = true
 			LIMIT $5
 		`),
 	); err != nil {

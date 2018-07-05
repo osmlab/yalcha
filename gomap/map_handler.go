@@ -7,7 +7,7 @@ import (
 const maxNodes = 50000
 
 // MapHandler is used to get data for /api/0.6/map?... request
-func (g *Gomap) MapHandler(bbox []float64) (*osm.OSM, error) {
+func (g *Gomap) MapHandler(bbox []int64) (*osm.OSM, error) {
 	nodesFromBbox, err := g.db.SelectNodesFromBbox(bbox)
 	if err != nil {
 		return nil, err
