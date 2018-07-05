@@ -17,6 +17,10 @@ func Load(config *config.Config, s *server.Server) *echo.Echo {
 
 	api06 := api.Group("/0.6")
 
+	map06 := api06.Group("/map")
+	map06.HEAD("", s.GetMap)
+	map06.GET("", s.GetMap)
+
 	node06 := api06.Group("/node")
 	node06.HEAD("/:id", s.GetNode)
 	node06.GET("/:id", s.GetNode)

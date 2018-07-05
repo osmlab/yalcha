@@ -36,7 +36,7 @@ func (g *Gomap) RelationFullHandler(id int64) (*osm.OSM, error) {
 	if err != nil {
 		return nil, err
 	}
-	relationsFromRelations, err := g.db.SelectRelationsFromRelations(ids)
+	relationsFromRelations, err := g.db.SelectRelationMembersFromRelations(ids)
 	if err != nil {
 		return nil, err
 	}

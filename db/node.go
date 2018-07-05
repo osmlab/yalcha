@@ -4,6 +4,8 @@ import (
 	"github.com/osmlab/gomap/osm"
 )
 
+const maxNodes = 50000
+
 // SelectNodes selects nodes id
 func (o *OsmDB) SelectNodes(ids ...int64) ([]int64, error) {
 	var result []int64
@@ -142,6 +144,26 @@ func (o *OsmDB) SelectNodesFromWays(ids []int64) ([]int64, error) {
 // SelectNodesFromRelations selects nodes id from database by id and relations ids
 func (o *OsmDB) SelectNodesFromRelations(ids []int64) ([]int64, error) {
 	rows, err := o.pool.Query(stmtNodesFromRelations, ids)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	nodeIDs := []int64{}
+	for rows.Next() {
+		var nodeID int64
+		if err := rows.Scan(&nodeID); err != nil {
+			return nil, err
+		}
+		nodeIDs = append(nodeIDs, nodeID)
+	}
+
+	return nodeIDs, nil
+}
+
+// SelectNodesFromBbox selects nodes id from database by coordinates
+func (o *OsmDB) SelectNodesFromBbox(bbox []float64) ([]int64, error) {
+	rows, err := o.pool.Query(stmtSelectNodesFromBbox, bbox[0], bbox[1], bbox[2], bbox[3], maxNodes+1)
 	if err != nil {
 		return nil, err
 	}

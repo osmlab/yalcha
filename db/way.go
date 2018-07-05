@@ -140,7 +140,7 @@ func (o *OsmDB) SelectWaysFromRelations(ids []int64) ([]int64, error) {
 // SelectWaysFromNodes selects ways by nodes id
 func (o *OsmDB) SelectWaysFromNodes(ids ...int64) ([]int64, error) {
 	var result []int64
-	rows, err := o.pool.Query(stmtSelectWaysFromNodes, ids)
+	rows, err := o.pool.Query(stmtWaysFromNodes, ids)
 	if err != nil {
 		return nil, err
 	}

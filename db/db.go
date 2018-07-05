@@ -12,29 +12,33 @@ import (
 )
 
 const (
-	stmtVisibleNode               = "visible_node"
-	stmtVisibleWay                = "visible_way"
-	stmtVisibleRelation           = "visible_relation"
-	stmtSelectNodes               = "select_nodes"
-	stmtSelectWays                = "select_ways"
-	stmtSelectRelations           = "select_relations"
-	stmtSelectNodesHistory        = "select_nodes_history"
-	stmtSelectWaysHistory         = "select_ways_history"
-	stmtSelectRelationsHistory    = "select_relations_history"
-	stmtSelectHistoricalNodes     = "select_historical_nodes"
-	stmtSelectHistoricalWays      = "select_historical_ways"
-	stmtSelectHistoricalRelations = "select_historical_relations"
-	stmtSelectWaysFromNodes       = "select_ways_from_nodes"
-	stmtExtractNodes              = "extract_nodes"
-	stmtExtractWays               = "extract_ways"
-	stmtExtractRelations          = "extract_relations"
-	stmtExtractHistoricNodes      = "extract_historic_nodes"
-	stmtExtractHistoricWays       = "extract_historic_ways"
-	stmtExtractHistoricRelations  = "extract_historic_relations"
-	stmtNodesFromWays             = "nodes_from_ways"
-	stmtNodesFromRelations        = "nodes_from_relations"
-	stmtWaysFromRelations         = "ways_from_relations"
-	stmtRelationsFromRelations    = "relation_members_of_relations"
+	stmtVisibleNode                = "visible_node"
+	stmtVisibleWay                 = "visible_way"
+	stmtVisibleRelation            = "visible_relation"
+	stmtSelectNodes                = "select_nodes"
+	stmtSelectWays                 = "select_ways"
+	stmtSelectRelations            = "select_relations"
+	stmtSelectNodesHistory         = "select_nodes_history"
+	stmtSelectWaysHistory          = "select_ways_history"
+	stmtSelectRelationsHistory     = "select_relations_history"
+	stmtSelectHistoricalNodes      = "select_historical_nodes"
+	stmtSelectHistoricalWays       = "select_historical_ways"
+	stmtSelectHistoricalRelations  = "select_historical_relations"
+	stmtSelectNodesFromBbox        = "visible_node_in_bbox"
+	stmtExtractNodes               = "extract_nodes"
+	stmtExtractWays                = "extract_ways"
+	stmtExtractRelations           = "extract_relations"
+	stmtExtractHistoricNodes       = "extract_historic_nodes"
+	stmtExtractHistoricWays        = "extract_historic_ways"
+	stmtExtractHistoricRelations   = "extract_historic_relations"
+	stmtNodesFromWays              = "nodes_from_ways"
+	stmtNodesFromRelations         = "nodes_from_relations"
+	stmtWaysFromNodes              = "ways_from_nodes"
+	stmtWaysFromRelations          = "ways_from_relations"
+	stmtRelationMembersOfRelations = "relation_members_of_relations"
+	stmtRelationParentsOfNodes     = "relation_parents_of_nodes"
+	stmtRelationParentsOfWays      = "relation_parents_of_ways"
+	stmtRelationParentsOfRelations = "relation_parents_of_relations"
 )
 
 // OsmDB contains logic to deal with Openstreetmap database
@@ -247,11 +251,24 @@ func initStatements(conn *pgx.ConnPool) (map[string]*pgx.PreparedStatement, erro
 	}
 
 	if _, err := conn.Prepare(
-		stmtSelectWaysFromNodes,
+		stmtWaysFromNodes,
 		strings.TrimSpace(`
 			SELECT DISTINCT wn.way_id AS id
 			FROM current_way_nodes wn
 			WHERE wn.node_id = ANY($1)
+		`),
+	); err != nil {
+		return nil, err
+	}
+
+	if _, err := conn.Prepare(
+		stmtSelectNodesFromBbox,
+		strings.TrimSpace(`
+			SELECT id
+			FROM current_nodes
+			WHERE latitude BETWEEN $1 AND $2 AND 
+				  longitude BETWEEN $3 AND $4 AND visible = true
+			LIMIT $5
 		`),
 	); err != nil {
 		return nil, err
@@ -556,6 +573,17 @@ func initStatements(conn *pgx.ConnPool) (map[string]*pgx.PreparedStatement, erro
 	}
 
 	if _, err := conn.Prepare(
+		stmtWaysFromNodes,
+		strings.TrimSpace(`
+			SELECT DISTINCT wn.way_id AS id
+			FROM current_way_nodes wn
+			WHERE wn.node_id = ANY($1)
+		`),
+	); err != nil {
+		return nil, err
+	}
+
+	if _, err := conn.Prepare(
 		stmtWaysFromRelations,
 		strings.TrimSpace(`
 			SELECT DISTINCT rm.member_id AS id
@@ -568,12 +596,48 @@ func initStatements(conn *pgx.ConnPool) (map[string]*pgx.PreparedStatement, erro
 	}
 
 	if _, err := conn.Prepare(
-		stmtRelationsFromRelations,
+		stmtRelationMembersOfRelations,
 		strings.TrimSpace(`
 			SELECT DISTINCT rm.member_id AS id
 			FROM current_relation_members rm
 			WHERE rm.member_type = 'Relation' AND 
 				  rm.relation_id = ANY($1)
+		`),
+	); err != nil {
+		return nil, err
+	}
+
+	if _, err := conn.Prepare(
+		stmtRelationParentsOfNodes,
+		strings.TrimSpace(`
+			SELECT DISTINCT rm.relation_id AS id
+			FROM current_relation_members rm
+			WHERE rm.member_type = 'Node' AND 
+				  rm.member_id = ANY($1)
+		`),
+	); err != nil {
+		return nil, err
+	}
+
+	if _, err := conn.Prepare(
+		stmtRelationParentsOfWays,
+		strings.TrimSpace(`
+			SELECT DISTINCT rm.relation_id AS id
+			FROM current_relation_members rm
+			WHERE rm.member_type = 'Way' AND 
+				  rm.member_id = ANY($1)
+		`),
+	); err != nil {
+		return nil, err
+	}
+
+	if _, err := conn.Prepare(
+		stmtRelationParentsOfRelations,
+		strings.TrimSpace(`
+			SELECT DISTINCT rm.relation_id AS id
+			FROM current_relation_members rm
+			WHERE rm.member_type = 'Relation' AND 
+				  rm.member_id = ANY($1)
 		`),
 	); err != nil {
 		return nil, err

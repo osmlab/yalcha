@@ -117,9 +117,69 @@ func (o *OsmDB) ExtractHistoricalRelations(ids [][2]int64) (osm.Relations, error
 	return relations, err
 }
 
-// SelectRelationsFromRelations selects relations id from database by id and relations ids
+// SelectRelationMembersFromRelations selects relations id from database by relations ids
+func (o *OsmDB) SelectRelationMembersFromRelations(ids []int64) ([]int64, error) {
+	rows, err := o.pool.Query(stmtRelationMembersOfRelations, ids)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	relIDs := []int64{}
+	for rows.Next() {
+		var relID int64
+		if err := rows.Scan(&relID); err != nil {
+			return nil, err
+		}
+		relIDs = append(relIDs, relID)
+	}
+
+	return relIDs, nil
+}
+
+// SelectRelationsFromNodes selects relations id from database by relations ids
+func (o *OsmDB) SelectRelationsFromNodes(ids []int64) ([]int64, error) {
+	rows, err := o.pool.Query(stmtRelationParentsOfNodes, ids)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	relIDs := []int64{}
+	for rows.Next() {
+		var relID int64
+		if err := rows.Scan(&relID); err != nil {
+			return nil, err
+		}
+		relIDs = append(relIDs, relID)
+	}
+
+	return relIDs, nil
+}
+
+// SelectRelationsFromWays selects relations id from database by ways ids
+func (o *OsmDB) SelectRelationsFromWays(ids []int64) ([]int64, error) {
+	rows, err := o.pool.Query(stmtRelationParentsOfWays, ids)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	relIDs := []int64{}
+	for rows.Next() {
+		var relID int64
+		if err := rows.Scan(&relID); err != nil {
+			return nil, err
+		}
+		relIDs = append(relIDs, relID)
+	}
+
+	return relIDs, nil
+}
+
+// SelectRelationsFromRelations selects relations id from database by relations ids
 func (o *OsmDB) SelectRelationsFromRelations(ids []int64) ([]int64, error) {
-	rows, err := o.pool.Query(stmtRelationsFromRelations, ids)
+	rows, err := o.pool.Query(stmtRelationParentsOfRelations, ids)
 	if err != nil {
 		return nil, err
 	}
