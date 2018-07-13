@@ -31,9 +31,10 @@ type OSM struct {
 	Attribution string `xml:"attribution,attr,omitempty"`
 	License     string `xml:"license,attr,omitempty"`
 
-	Nodes     Nodes     `xml:"node"`
-	Ways      Ways      `xml:"way"`
-	Relations Relations `xml:"relation"`
+	Nodes      Nodes      `xml:"node"`
+	Ways       Ways       `xml:"way"`
+	Relations  Relations  `xml:"relation"`
+	Changesets Changesets `xml:"changeset"`
 }
 
 // New creates osm object
@@ -54,7 +55,7 @@ func (o *OSM) Objects() Objects {
 		return nil
 	}
 
-	result := make(Objects, 0, len(o.Nodes)+len(o.Ways)+len(o.Relations))
+	result := make(Objects, 0, len(o.Nodes)+len(o.Ways)+len(o.Relations)+len(o.Changesets))
 	for _, o := range o.Nodes {
 		result = append(result, o)
 	}
@@ -62,6 +63,9 @@ func (o *OSM) Objects() Objects {
 		result = append(result, o)
 	}
 	for _, o := range o.Relations {
+		result = append(result, o)
+	}
+	for _, o := range o.Changesets {
 		result = append(result, o)
 	}
 
@@ -142,6 +146,10 @@ func (o *OSM) marshalInnerXML(e *xml.Encoder) error {
 		return err
 	}
 
+	if err := e.Encode(o.Changesets); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -155,6 +163,10 @@ func (o *OSM) marshalInnerElementsXML(e *xml.Encoder) error {
 	}
 
 	if err := e.Encode(o.Relations); err != nil {
+		return err
+	}
+
+	if err := e.Encode(o.Changesets); err != nil {
 		return err
 	}
 

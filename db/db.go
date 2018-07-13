@@ -15,6 +15,7 @@ const (
 	stmtVisibleNode                = "visible_node"
 	stmtVisibleWay                 = "visible_way"
 	stmtVisibleRelation            = "visible_relation"
+	stmtSelectChangesets           = "select_changesets"
 	stmtSelectNodes                = "select_nodes"
 	stmtSelectWays                 = "select_ways"
 	stmtSelectRelations            = "select_relations"
@@ -25,6 +26,7 @@ const (
 	stmtSelectHistoricalWays       = "select_historical_ways"
 	stmtSelectHistoricalRelations  = "select_historical_relations"
 	stmtSelectNodesFromBbox        = "visible_node_in_bbox"
+	stmtExtractChangesets          = "extract_changesets"
 	stmtExtractNodes               = "extract_nodes"
 	stmtExtractWays                = "extract_ways"
 	stmtExtractRelations           = "extract_relations"
@@ -113,6 +115,17 @@ func initStatements(conn *pgx.ConnPool) (map[string]*pgx.PreparedStatement, erro
 		`),
 	); err != nil {
 		return nil, err
+	}
+
+	if _, err := conn.Prepare(
+		stmtSelectChangesets,
+		strings.TrimSpace(`
+			SELECT id
+			FROM changesets
+			WHERE id = ANY($1)
+		`),
+	); err != nil {
+		return sts, err
 	}
 
 	if _, err := conn.Prepare(
@@ -275,7 +288,65 @@ func initStatements(conn *pgx.ConnPool) (map[string]*pgx.PreparedStatement, erro
 		return nil, err
 	}
 
-	_, err := conn.Prepare(
+	if _, err := conn.Prepare(
+		stmtExtractChangesets,
+		strings.TrimSpace(`
+			SELECT
+				c.id,
+				c.user_id,
+				u.display_name,
+				replace(to_char(c.created_at,'YYYY-MM-DD T HH24:MI:SSZ'), ' ', ''),
+				replace(to_char(c.closed_at,'YYYY-MM-DD T HH24:MI:SSZ'), ' ', ''),
+				c.min_lat / 1e7 :: float,
+				c.max_lat / 1e7 :: float,
+				c.min_lon / 1e7 :: float,
+				c.max_lon / 1e7 :: float,
+				c.num_changes,
+				COALESCE(to_json(t.tags), '[]') as tags,
+				cc.comments_count,
+				COALESCE(to_json(cc.comments), '[]') as comments
+			FROM changesets c
+			LEFT JOIN users u ON (u.id = c.user_id and u.data_public)
+			LEFT JOIN LATERAL (
+				SELECT
+					array_agg(
+						(k, v) :: osm_tag
+						ORDER BY k
+					) as tags
+				FROM changeset_tags
+				WHERE c.id=changeset_id
+			) t ON true
+			LEFT JOIN LATERAL (
+				SELECT
+					array_agg(
+						(
+							author_id, 
+							display_name, 
+							body, 
+							replace(to_char(c.created_at,'YYYY-MM-DD T HH24:MI:SSZ'), ' ', '')
+						)
+					) as comments,
+					count(*) as comments_count
+				FROM (
+					SELECT
+						cc.author_id,
+						u.display_name,
+						cc.body,
+						cc.created_at
+					FROM changeset_comments cc
+					JOIN users u ON cc.author_id = u.id
+					WHERE cc.changeset_id=c.id AND
+						  cc.visible
+					ORDER BY cc.created_at
+				) x
+			) cc ON true
+			WHERE c.id = ANY($1)
+		`),
+	); err != nil {
+		return nil, err
+	}
+
+	if _, err := conn.Prepare(
 		stmtExtractNodes,
 		strings.TrimSpace(`
 			SELECT 
@@ -303,12 +374,11 @@ func initStatements(conn *pgx.ConnPool) (map[string]*pgx.PreparedStatement, erro
 			WHERE n.id = ANY($1)
 			ORDER BY n.id
 		`),
-	)
-	if err != nil {
+	); err != nil {
 		return nil, err
 	}
 
-	_, err = conn.Prepare(
+	_, err := conn.Prepare(
 		stmtExtractWays,
 		strings.TrimSpace(`
 			SELECT 

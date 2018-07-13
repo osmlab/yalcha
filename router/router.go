@@ -63,5 +63,9 @@ func Load(config *config.Config, s *server.Server) *echo.Echo {
 	relations06.HEAD("", s.GetRelations)
 	relations06.GET("", s.GetRelations)
 
+	changeset06 := api06.Group("/changeset")
+	changeset06.HEAD("/:id", s.GetChangeset)
+	changeset06.GET("/:id", s.GetChangeset)
+
 	return e
 }
