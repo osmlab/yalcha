@@ -354,7 +354,7 @@ func initStatements(conn *pgx.ConnPool) (map[string]*pgx.PreparedStatement, erro
 				n.latitude / 1e7 :: float,
 				n.longitude / 1e7 :: float,
 				n.visible,
-				n.timestamp,
+				replace(to_char(n.timestamp,'YYYY-MM-DD T HH24:MI:SSZ'), ' ', ''),
 				n.changeset_id,
 				u.display_name,
 				u.id,
@@ -384,7 +384,7 @@ func initStatements(conn *pgx.ConnPool) (map[string]*pgx.PreparedStatement, erro
 			SELECT 
 				w.id, 
 				w.visible,
-				w.timestamp,
+				replace(to_char(w.timestamp,'YYYY-MM-DD T HH24:MI:SSZ'), ' ', ''),
 				w.changeset_id,
 				u.display_name,
     			u.id,
@@ -428,7 +428,7 @@ func initStatements(conn *pgx.ConnPool) (map[string]*pgx.PreparedStatement, erro
 			SELECT 
 				r.id, 
 				r.visible, 
-				r.timestamp,
+				replace(to_char(r.timestamp,'YYYY-MM-DD T HH24:MI:SSZ'), ' ', ''),
 				r.changeset_id,
 				u.display_name,
 				u.id,
@@ -487,7 +487,7 @@ func initStatements(conn *pgx.ConnPool) (map[string]*pgx.PreparedStatement, erro
 				n.latitude / 1e7 :: float,
 				n.longitude / 1e7 :: float, 
 				n.visible,
-				n.timestamp,
+				replace(to_char(n.timestamp,'YYYY-MM-DD T HH24:MI:SSZ'), ' ', ''),
 				n.changeset_id, 
 				u.display_name,
 				u.id,
@@ -523,7 +523,7 @@ func initStatements(conn *pgx.ConnPool) (map[string]*pgx.PreparedStatement, erro
 			SELECT 
 				w.way_id AS id, 
 				w.visible,
-				w.timestamp,
+				replace(to_char(w.timestamp,'YYYY-MM-DD T HH24:MI:SSZ'), ' ', ''),
 				w.changeset_id, 
 				u.display_name,
     			u.id,
@@ -571,7 +571,7 @@ func initStatements(conn *pgx.ConnPool) (map[string]*pgx.PreparedStatement, erro
 			SELECT 
 				r.relation_id AS id, 
 				r.visible,
-				r.timestamp,
+				replace(to_char(r.timestamp,'YYYY-MM-DD T HH24:MI:SSZ'), ' ', ''),
 				r.changeset_id,
 				u.display_name,
 				u.id,
