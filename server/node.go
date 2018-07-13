@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/labstack/echo"
-	"github.com/osmlab/yalcha/osm"
+	"github.com/osmlab/gomap/gomap"
 )
 
 // GetNode returns node by id
@@ -17,19 +17,48 @@ func (s *Server) GetNode(c echo.Context) error {
 		s.SetEmptyResultHeaders(c, http.StatusNotFound)
 		return err
 	}
-	node, err := s.db.GetNode(id)
-	if err != nil {
+
+	resp, err := s.g.NodeHandler(id)
+	if err == gomap.ErrElementNotFound {
 		s.SetEmptyResultHeaders(c, http.StatusNotFound)
 		return err
 	}
-
-	if !node.Visible {
+	if err == gomap.ErrElementDeleted {
 		s.SetEmptyResultHeaders(c, http.StatusGone)
+		return err
+	}
+	if err != nil {
+		s.SetEmptyResultHeaders(c, http.StatusInternalServerError)
+		return err
+	}
+
+	s.SetHeaders(c)
+	return xml.NewEncoder(c.Response()).Encode(resp)
+}
+
+// GetNodes returns nodes by ids
+func (s *Server) GetNodes(c echo.Context) error {
+	rawIDs := strings.Split(c.QueryParam("nodes"), ",")
+	if len(rawIDs) == 0 {
+		s.SetEmptyResultHeaders(c, http.StatusBadRequest)
 		return nil
 	}
 
-	resp := osm.New()
-	resp.Nodes = append(resp.Nodes, node)
+	ids, histIDs, err := getCurrentHistoricIDs(rawIDs)
+	if err != nil {
+		s.SetEmptyResultHeaders(c, http.StatusBadRequest)
+		return err
+	}
+
+	resp, err := s.g.NodesHandler(ids, histIDs)
+	if err == gomap.ErrElementNotFound {
+		s.SetEmptyResultHeaders(c, http.StatusNotFound)
+		return err
+	}
+	if err != nil {
+		s.SetEmptyResultHeaders(c, http.StatusInternalServerError)
+		return err
+	}
 
 	s.SetHeaders(c)
 	return xml.NewEncoder(c.Response()).Encode(resp)
@@ -47,19 +76,16 @@ func (s *Server) GetNodeByVersion(c echo.Context) error {
 		s.SetEmptyResultHeaders(c, http.StatusNotFound)
 		return err
 	}
-	node, err := s.db.GetNodeByVersion(id, version)
-	if err != nil {
+
+	resp, err := s.g.NodeVersionHandler(id, version)
+	if err == gomap.ErrElementNotFound {
 		s.SetEmptyResultHeaders(c, http.StatusNotFound)
 		return err
 	}
-
-	if !node.Visible {
-		s.SetEmptyResultHeaders(c, http.StatusGone)
-		return nil
+	if err != nil {
+		s.SetEmptyResultHeaders(c, http.StatusInternalServerError)
+		return err
 	}
-
-	resp := osm.New()
-	resp.Nodes = append(resp.Nodes, node)
 
 	s.SetHeaders(c)
 	return xml.NewEncoder(c.Response()).Encode(resp)
@@ -72,66 +98,15 @@ func (s *Server) GetNodeHistory(c echo.Context) error {
 		s.SetEmptyResultHeaders(c, http.StatusNotFound)
 		return err
 	}
-	nodes, err := s.db.GetNodeHistory(id)
-	if err != nil {
+
+	resp, err := s.g.NodeHistoryHandler(id)
+	if err == gomap.ErrElementNotFound {
 		s.SetEmptyResultHeaders(c, http.StatusNotFound)
 		return err
 	}
-
-	resp := osm.New()
-	resp.Nodes = nodes
-
-	s.SetHeaders(c)
-	return xml.NewEncoder(c.Response()).Encode(resp)
-}
-
-// GetNodes returns nodes by ids
-func (s *Server) GetNodes(c echo.Context) error {
-	nodeIDsString := strings.Split(c.QueryParam("nodes"), ",")
-	if len(nodeIDsString) == 0 {
-		s.SetEmptyResultHeaders(c, http.StatusBadRequest)
-		return nil
-	}
-
-	cIDs := make([]int64, 0)
-	nIDsVs := make([][2]int64, 0)
-	for i := range nodeIDsString {
-		idv := strings.Split(nodeIDsString[i], "v")
-		id, err := strconv.ParseInt(idv[0], 10, 64)
-		if err != nil {
-			s.SetEmptyResultHeaders(c, http.StatusBadRequest)
-			return nil
-		}
-		if len(idv) == 1 {
-			cIDs = appendIfUnique(cIDs, id)
-			continue
-		}
-		v, err := strconv.ParseInt(idv[1], 10, 64)
-		if err != nil {
-			s.SetEmptyResultHeaders(c, http.StatusBadRequest)
-			return nil
-		}
-		nIDsVs = appendVersionIfUnique(nIDsVs, [2]int64{id, v})
-	}
-
-	nodes, err := s.db.GetNodes(cIDs, nIDsVs)
 	if err != nil {
-		s.SetEmptyResultHeaders(c, http.StatusNotFound)
+		s.SetEmptyResultHeaders(c, http.StatusInternalServerError)
 		return err
-	}
-
-	if len(nodes) != len(cIDs)+len(nIDsVs) {
-		s.SetEmptyResultHeaders(c, http.StatusNotFound)
-		return nil
-	}
-
-	resp := osm.New()
-	for _, node := range nodes {
-		if !node.Visible {
-			node.Lat = nil
-			node.Lon = nil
-		}
-		resp.Nodes = append(resp.Nodes, node)
 	}
 
 	s.SetHeaders(c)

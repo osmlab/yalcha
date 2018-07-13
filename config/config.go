@@ -9,7 +9,7 @@ type Config struct {
 // DB contains database credentials
 type DB struct {
 	Host     string
-	Port     string
+	Port     uint16
 	DBName   string
 	User     string
 	Password string

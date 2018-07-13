@@ -7,7 +7,9 @@ import (
 	"time"
 )
 
-const osmTimeFormat = "2006-01-02T15:04:05Z"
+const (
+	timeFormat = "2006-01-02T15:04:05Z"
+)
 
 // Tag represents osm tag
 type Tag struct {
@@ -16,7 +18,7 @@ type Tag struct {
 }
 
 // Tags is Tag array
-type Tags []Tag
+type Tags []*Tag
 
 // Scan - Implement the database/sql scanner interface
 func (ts *Tags) Scan(value interface{}) error {
@@ -27,13 +29,12 @@ func (ts *Tags) Scan(value interface{}) error {
 type Time time.Time
 
 func (t *Time) String() string {
-	return time.Time(*t).UTC().Format(osmTimeFormat)
+	return time.Time(*t).UTC().Format(timeFormat)
 }
 
 // Scan - Implement the database/sql scanner interface
 func (t *Time) Scan(v interface{}) error {
-	*t = Time(v.(time.Time))
-	return nil
+	return t.processTime(v.(string))
 }
 
 // UnmarshalJSON - implement Unmarshaler interface
@@ -55,7 +56,7 @@ func (t *Time) UnmarshalXMLAttr(attr xml.Attr) error {
 }
 
 func (t *Time) processTime(s string) error {
-	pt, err := time.Parse(osmTimeFormat, s)
+	pt, err := time.Parse(timeFormat, s)
 	if err != nil {
 		return err
 	}

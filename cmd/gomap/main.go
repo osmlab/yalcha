@@ -3,10 +3,12 @@ package main
 import (
 	"log"
 
-	"github.com/osmlab/yalcha/config"
-	"github.com/osmlab/yalcha/db"
-	"github.com/osmlab/yalcha/router"
-	"github.com/osmlab/yalcha/server"
+	"github.com/osmlab/gomap/gomap"
+
+	"github.com/osmlab/gomap/config"
+	"github.com/osmlab/gomap/db"
+	"github.com/osmlab/gomap/router"
+	"github.com/osmlab/gomap/server"
 )
 
 func main() {
@@ -14,7 +16,7 @@ func main() {
 		Port: "8090",
 		Database: config.DB{
 			Host:     "localhost",
-			Port:     "5432",
+			Port:     5432,
 			DBName:   "openstreetmap",
 			User:     "heorhi",
 			Password: "some_password",
@@ -24,7 +26,8 @@ func main() {
 	if err != nil {
 		log.Fatalf("DB started with error: %v", err)
 	}
-	server := server.New(db)
+	g := gomap.New(db)
+	server := server.New(g)
 	router := router.Load(config, server)
 	err = router.Start(":" + config.Port)
 	log.Fatalf("Server started with error: %v", err)

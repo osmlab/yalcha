@@ -3,6 +3,8 @@ package osm
 import (
 	"encoding/json"
 	"encoding/xml"
+	"reflect"
+	"sort"
 	"strconv"
 )
 
@@ -13,7 +15,7 @@ const (
 	Attribution = "http://www.openstreetmap.org/copyright"
 	License     = "http://opendatacommons.org/licenses/odbl/1-0/"
 	Version     = 0.6
-	Generator   = "Yalcha"
+	Generator   = "Gomap"
 )
 
 // OSM represents the core osm data
@@ -29,9 +31,10 @@ type OSM struct {
 	Attribution string `xml:"attribution,attr,omitempty"`
 	License     string `xml:"license,attr,omitempty"`
 
-	Nodes     Nodes     `xml:"node"`
-	Ways      Ways      `xml:"way"`
-	Relations Relations `xml:"relation"`
+	Nodes      Nodes      `xml:"node"`
+	Ways       Ways       `xml:"way"`
+	Relations  Relations  `xml:"relation"`
+	Changesets Changesets `xml:"changeset"`
 }
 
 // New creates osm object
@@ -52,7 +55,7 @@ func (o *OSM) Objects() Objects {
 		return nil
 	}
 
-	result := make(Objects, 0, len(o.Nodes)+len(o.Ways)+len(o.Relations))
+	result := make(Objects, 0, len(o.Nodes)+len(o.Ways)+len(o.Relations)+len(o.Changesets))
 	for _, o := range o.Nodes {
 		result = append(result, o)
 	}
@@ -60,6 +63,9 @@ func (o *OSM) Objects() Objects {
 		result = append(result, o)
 	}
 	for _, o := range o.Relations {
+		result = append(result, o)
+	}
+	for _, o := range o.Changesets {
 		result = append(result, o)
 	}
 
@@ -140,6 +146,10 @@ func (o *OSM) marshalInnerXML(e *xml.Encoder) error {
 		return err
 	}
 
+	if err := e.Encode(o.Changesets); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -156,5 +166,76 @@ func (o *OSM) marshalInnerElementsXML(e *xml.Encoder) error {
 		return err
 	}
 
+	if err := e.Encode(o.Changesets); err != nil {
+		return err
+	}
+
 	return nil
+}
+
+// Equals compares two OSM objects
+func (o *OSM) Equals(obj *OSM) bool {
+	o.sort()
+	obj.sort()
+	return reflect.DeepEqual(o.Objects(), obj.Objects())
+}
+
+func (o *OSM) sort() {
+	for k := range o.Nodes {
+		sort.Slice(o.Nodes[k].Tags, func(i, j int) bool {
+			if o.Nodes[k].Tags[i].K < o.Nodes[k].Tags[j].K {
+				return true
+			}
+			if o.Nodes[k].Tags[i].K > o.Nodes[k].Tags[j].K {
+				return false
+			}
+			return o.Nodes[k].Tags[i].V < o.Nodes[k].Tags[j].V
+		})
+	}
+
+	for k := range o.Ways {
+		sort.Slice(o.Ways[k].Nodes, func(i, j int) bool {
+			return o.Ways[k].Nodes[i].ID < o.Ways[k].Nodes[j].ID
+		})
+		sort.Slice(o.Ways[k].Tags, func(i, j int) bool {
+			if o.Ways[k].Tags[i].K < o.Ways[k].Tags[j].K {
+				return true
+			}
+			if o.Ways[k].Tags[i].K > o.Ways[k].Tags[j].K {
+				return false
+			}
+			return o.Ways[k].Tags[i].V < o.Ways[k].Tags[j].V
+		})
+	}
+
+	for k := range o.Relations {
+		sort.Slice(o.Relations[k].Members, func(i, j int) bool {
+			if o.Relations[k].Members[i].Ref < o.Relations[k].Members[j].Ref {
+				return true
+			}
+			if o.Relations[k].Members[i].Ref > o.Relations[k].Members[j].Ref {
+				return false
+			}
+			if o.Relations[k].Members[i].Type < o.Relations[k].Members[j].Type {
+				return true
+			}
+			if o.Relations[k].Members[i].Type > o.Relations[k].Members[j].Type {
+				return false
+			}
+			return o.Relations[k].Members[i].Role > o.Relations[k].Members[j].Role
+		})
+		sort.Slice(o.Relations[k].Tags, func(i, j int) bool {
+			if o.Relations[k].Tags[i].K < o.Relations[k].Tags[j].K {
+				return true
+			}
+			if o.Relations[k].Tags[i].K > o.Relations[k].Tags[j].K {
+				return false
+			}
+			return o.Relations[k].Tags[i].V < o.Relations[k].Tags[j].V
+		})
+	}
+
+	sort.Slice(o.Nodes, func(i, j int) bool { return o.Nodes[i].ID < o.Nodes[j].ID })
+	sort.Slice(o.Ways, func(i, j int) bool { return o.Ways[i].ID < o.Ways[j].ID })
+	sort.Slice(o.Relations, func(i, j int) bool { return o.Relations[i].ID < o.Relations[j].ID })
 }

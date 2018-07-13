@@ -3,8 +3,8 @@ package router
 import (
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
-	"github.com/osmlab/yalcha/config"
-	"github.com/osmlab/yalcha/server"
+	"github.com/osmlab/gomap/config"
+	"github.com/osmlab/gomap/server"
 )
 
 // Load returns api router
@@ -17,6 +17,10 @@ func Load(config *config.Config, s *server.Server) *echo.Echo {
 
 	api06 := api.Group("/0.6")
 
+	map06 := api06.Group("/map")
+	map06.HEAD("", s.GetMap)
+	map06.GET("", s.GetMap)
+
 	node06 := api06.Group("/node")
 	node06.HEAD("/:id", s.GetNode)
 	node06.GET("/:id", s.GetNode)
@@ -24,6 +28,8 @@ func Load(config *config.Config, s *server.Server) *echo.Echo {
 	node06.GET("/:id/:version", s.GetNodeByVersion)
 	node06.HEAD("/:id/history", s.GetNodeHistory)
 	node06.GET("/:id/history", s.GetNodeHistory)
+	node06.HEAD("/:id/ways", s.GetWaysByNode)
+	node06.GET("/:id/ways", s.GetWaysByNode)
 
 	nodes06 := api06.Group("/nodes")
 	nodes06.HEAD("", s.GetNodes)
@@ -56,6 +62,10 @@ func Load(config *config.Config, s *server.Server) *echo.Echo {
 	relations06 := api06.Group("/relations")
 	relations06.HEAD("", s.GetRelations)
 	relations06.GET("", s.GetRelations)
+
+	changeset06 := api06.Group("/changeset")
+	changeset06.HEAD("/:id", s.GetChangeset)
+	changeset06.GET("/:id", s.GetChangeset)
 
 	return e
 }

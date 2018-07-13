@@ -101,4 +101,6 @@ where n.relation_id = $1
 $$;
 
 -- +goose Down
--- SQL in this section is executed when the migration is rolled back.
+drop function if exists get_relation_history_by_id(bigint);
+drop function if exists get_node_history_by_id(bigint);
+drop function if exists get_way_history_by_id(bigint);

@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/labstack/echo"
-	"github.com/osmlab/yalcha/osm"
+	"github.com/osmlab/gomap/gomap"
 )
 
 // GetWay returns way by id
@@ -17,19 +17,74 @@ func (s *Server) GetWay(c echo.Context) error {
 		s.SetEmptyResultHeaders(c, http.StatusNotFound)
 		return err
 	}
-	way, err := s.db.GetWay(id)
+
+	resp, err := s.g.WayHandler(id)
+	if err == gomap.ErrElementNotFound {
+		s.SetEmptyResultHeaders(c, http.StatusNotFound)
+		return err
+	}
+	if err == gomap.ErrElementDeleted {
+		s.SetEmptyResultHeaders(c, http.StatusGone)
+		return err
+	}
+	if err != nil {
+		s.SetEmptyResultHeaders(c, http.StatusInternalServerError)
+		return err
+	}
+
+	s.SetHeaders(c)
+	return xml.NewEncoder(c.Response()).Encode(resp)
+}
+
+// GetWays returns ways by ids
+func (s *Server) GetWays(c echo.Context) error {
+	rawIDs := strings.Split(c.QueryParam("ways"), ",")
+	if len(rawIDs) == 0 {
+		s.SetEmptyResultHeaders(c, http.StatusBadRequest)
+		return nil
+	}
+
+	ids, histIDs, err := getCurrentHistoricIDs(rawIDs)
+	if err != nil {
+		s.SetEmptyResultHeaders(c, http.StatusBadRequest)
+		return err
+	}
+
+	resp, err := s.g.WaysHandler(ids, histIDs)
+	if err == gomap.ErrElementNotFound {
+		s.SetEmptyResultHeaders(c, http.StatusNotFound)
+		return err
+	}
+	if err != nil {
+		s.SetEmptyResultHeaders(c, http.StatusInternalServerError)
+		return err
+	}
+
+	s.SetHeaders(c)
+	return xml.NewEncoder(c.Response()).Encode(resp)
+}
+
+// GetWayFull returns full way by id
+func (s *Server) GetWayFull(c echo.Context) error {
+	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
 		s.SetEmptyResultHeaders(c, http.StatusNotFound)
 		return err
 	}
 
-	if !way.Visible {
-		s.SetEmptyResultHeaders(c, http.StatusGone)
-		return nil
+	resp, err := s.g.WayFullHandler(id)
+	if err == gomap.ErrElementNotFound {
+		s.SetEmptyResultHeaders(c, http.StatusNotFound)
+		return err
 	}
-
-	resp := osm.New()
-	resp.Ways = append(resp.Ways, way)
+	if err == gomap.ErrElementDeleted {
+		s.SetEmptyResultHeaders(c, http.StatusGone)
+		return err
+	}
+	if err != nil {
+		s.SetEmptyResultHeaders(c, http.StatusInternalServerError)
+		return err
+	}
 
 	s.SetHeaders(c)
 	return xml.NewEncoder(c.Response()).Encode(resp)
@@ -47,44 +102,19 @@ func (s *Server) GetWayByVersion(c echo.Context) error {
 		s.SetEmptyResultHeaders(c, http.StatusNotFound)
 		return err
 	}
-	way, err := s.db.GetWayByVersion(id, version)
-	if err != nil {
+
+	resp, err := s.g.WayVersionHandler(id, version)
+	if err == gomap.ErrElementNotFound {
 		s.SetEmptyResultHeaders(c, http.StatusNotFound)
 		return err
 	}
-
-	if !way.Visible {
-		s.SetEmptyResultHeaders(c, http.StatusGone)
-		return nil
+	if err != nil {
+		s.SetEmptyResultHeaders(c, http.StatusInternalServerError)
+		return err
 	}
-
-	resp := osm.New()
-	resp.Ways = append(resp.Ways, way)
 
 	s.SetHeaders(c)
 	return xml.NewEncoder(c.Response()).Encode(resp)
-}
-
-// GetWayFull returns full way by id
-func (s *Server) GetWayFull(c echo.Context) error {
-	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
-	if err != nil {
-		s.SetEmptyResultHeaders(c, http.StatusNotFound)
-		return err
-	}
-	osm, err := s.db.GetWayFull(id)
-	if err != nil || len(osm.Objects()) == 0 {
-		s.SetEmptyResultHeaders(c, http.StatusNotFound)
-		return err
-	}
-
-	if !osm.Ways[0].Visible {
-		s.SetEmptyResultHeaders(c, http.StatusGone)
-		return nil
-	}
-
-	s.SetHeaders(c)
-	return xml.NewEncoder(c.Response()).Encode(osm)
 }
 
 // GetWayHistory returns way history by id
@@ -94,61 +124,38 @@ func (s *Server) GetWayHistory(c echo.Context) error {
 		s.SetEmptyResultHeaders(c, http.StatusNotFound)
 		return err
 	}
-	ways, err := s.db.GetWayHistory(id)
-	if err != nil {
+
+	resp, err := s.g.WayHistoryHandler(id)
+	if err == gomap.ErrElementNotFound {
 		s.SetEmptyResultHeaders(c, http.StatusNotFound)
 		return err
 	}
-
-	resp := osm.New()
-	resp.Ways = ways
+	if err != nil {
+		s.SetEmptyResultHeaders(c, http.StatusInternalServerError)
+		return err
+	}
 
 	s.SetHeaders(c)
 	return xml.NewEncoder(c.Response()).Encode(resp)
 }
 
-// GetWays returns ways by ids
-func (s *Server) GetWays(c echo.Context) error {
-	wayIDsString := strings.Split(c.QueryParam("ways"), ",")
-	if len(wayIDsString) == 0 {
-		s.SetEmptyResultHeaders(c, http.StatusBadRequest)
-		return nil
-	}
-
-	cIDs := make([]int64, 0)
-	nIDsVs := make([][2]int64, 0)
-	for i := range wayIDsString {
-		idv := strings.Split(wayIDsString[i], "v")
-		id, err := strconv.ParseInt(idv[0], 10, 64)
-		if err != nil {
-			s.SetEmptyResultHeaders(c, http.StatusBadRequest)
-			return nil
-		}
-		if len(idv) == 1 {
-			cIDs = appendIfUnique(cIDs, id)
-			continue
-		}
-		v, err := strconv.ParseInt(idv[1], 10, 64)
-		if err != nil {
-			s.SetEmptyResultHeaders(c, http.StatusBadRequest)
-			return nil
-		}
-		nIDsVs = appendVersionIfUnique(nIDsVs, [2]int64{id, v})
-	}
-
-	ways, err := s.db.GetWays(cIDs, nIDsVs)
+// GetWaysByNode returns ways by node
+func (s *Server) GetWaysByNode(c echo.Context) error {
+	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
 		s.SetEmptyResultHeaders(c, http.StatusNotFound)
 		return err
 	}
 
-	if len(ways) != len(cIDs)+len(nIDsVs) {
+	resp, err := s.g.NodeWaysHandler(id)
+	if err == gomap.ErrElementNotFound {
 		s.SetEmptyResultHeaders(c, http.StatusNotFound)
-		return nil
+		return err
 	}
-
-	resp := osm.New()
-	resp.Ways = ways
+	if err != nil {
+		s.SetEmptyResultHeaders(c, http.StatusInternalServerError)
+		return err
+	}
 
 	s.SetHeaders(c)
 	return xml.NewEncoder(c.Response()).Encode(resp)

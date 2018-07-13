@@ -8,9 +8,10 @@ type Object interface {
 	private()
 }
 
-func (n *Node) private()     {}
-func (w *Way) private()      {}
-func (r *Relation) private() {}
+func (n *Node) private()      {}
+func (w *Way) private()       {}
+func (r *Relation) private()  {}
+func (c *Changeset) private() {}
 
 // Objects is a set of objects with some helpers
 type Objects []Object
